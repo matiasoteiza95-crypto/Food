@@ -259,59 +259,59 @@ ol.steps { margin: 0; padding-left: 20px; display: grid; gap: 6px; font-size: 14
 <script>
 "use strict";
 /* ---------- recipe library ----------
-   [id, name, emoji, meals(b/l/d/s), tags, kcal, protein, carbs, fat, cost/serving USD, minutes, ingredients per serving, steps]
+   [id, name, emoji, meals(b/l/d/s), tags, kcal, protein, carbs, fat, cost/serving GBP, minutes, ingredients per serving, steps]
    ingredient: [name, qty, unit, aisle]  aisle: P produce, M meat & seafood, D dairy & refrigerated, B bakery & grains,
-   C canned & dry, F frozen, S pantry & spices (staples), N nuts & snacks */
-const AISLES = { P: "Produce", M: "Meat & Seafood", D: "Dairy & Refrigerated", B: "Bakery & Tortillas", C: "Canned & Dry Goods", F: "Frozen", N: "Nuts & Snacks", S: "Pantry Staples & Spices" };
+   C tins & dry goods, F frozen, S cupboard staples & spices, N nuts & snacks */
+const AISLES = { P: "Fruit & Veg", M: "Meat & Fish", D: "Dairy, Eggs & Chilled", B: "Bakery", C: "Tins, Jars & Dry Goods", F: "Frozen", N: "Nuts, Seeds & Snacks", S: "Cupboard Staples & Spices" };
 const RAW = [
- ["b1","Overnight Oats with Berries","🥣","b","vegan vegetarian df budget healthy",380,13,58,11,1.10,5,[["rolled oats",.5,"cup","C"],["soy milk",.75,"cup","D"],["chia seeds",1,"tbsp","N"],["frozen mixed berries",.5,"cup","F"],["maple syrup",1,"tsp","S"]],["Stir oats, soy milk and chia together in a jar.","Top with berries and a drizzle of maple.","Refrigerate overnight. Eat cold or warm for 60 seconds."]],
- ["b2","Greek Yogurt Parfait","🍯","bs","vegetarian gf mediterranean healthy highprotein",330,24,40,9,1.60,5,[["plain Greek yogurt",1,"cup","D"],["fresh berries",.5,"cup","P"],["walnuts",.5,"oz","N"],["honey",1,"tsp","S"]],["Spoon yogurt into a bowl or glass.","Layer with berries and chopped walnuts.","Finish with honey."]],
- ["b3","Veggie Egg Scramble & Toast","🍳","b","vegetarian df highprotein budget",410,24,30,20,1.40,15,[["eggs",3,"each","D"],["spinach",1,"cup","P"],["bell pepper",.5,"each","P"],["whole-grain bread",1,"slice","B"],["olive oil",1,"tsp","S"]],["Sauté diced pepper in oil for 3 minutes.","Add spinach until wilted, then beaten eggs.","Stir gently until just set. Serve with toast."]],
- ["b4","Avocado Toast with Egg","🥑","b","vegetarian df healthy",430,17,34,26,1.90,10,[["whole-grain bread",2,"slice","B"],["avocado",.5,"each","P"],["eggs",1,"each","D"],["lemon",.25,"each","P"],["red pepper flakes",.25,"tsp","S"]],["Toast the bread.","Mash avocado with lemon and salt; spread on toast.","Top with a fried or jammy egg and pepper flakes."]],
- ["b5","Turmeric Tofu Scramble","🌼","b","vegan vegetarian gf df highprotein healthy",340,24,14,21,1.50,15,[["extra-firm tofu",7,"oz","D"],["spinach",1,"cup","P"],["cherry tomatoes",.5,"cup","P"],["corn tortillas",2,"each","B"],["turmeric",.25,"tsp","S"],["olive oil",1,"tsp","S"]],["Crumble tofu into a hot oiled pan.","Season with turmeric, salt and pepper; cook 5 minutes.","Fold in spinach and halved tomatoes. Serve in warm tortillas."]],
- ["b6","Shakshuka","🍅","bd","vegetarian gf df mediterranean healthy",360,19,22,22,1.50,25,[["crushed tomatoes (28 oz)",.25,"can","C"],["eggs",2,"each","D"],["onion",.25,"each","P"],["bell pepper",.5,"each","P"],["garlic",1,"clove","P"],["cumin",.5,"tsp","S"],["smoked paprika",.5,"tsp","S"],["olive oil",1,"tbsp","S"]],["Soften onion, pepper and garlic in oil.","Add spices and tomatoes; simmer 10 minutes.","Make wells, crack in eggs, cover and cook until whites set."]],
- ["b7","PB Banana Smoothie","🍌","bs","vegan vegetarian gf df quick budget",420,18,52,17,1.20,5,[["banana",1,"each","P"],["soy milk",1,"cup","D"],["peanut butter",2,"tbsp","C"],["ground flaxseed",1,"tbsp","N"]],["Add everything to a blender with a few ice cubes.","Blend until smooth."]],
- ["b8","Bacon & Spinach Egg Muffins","🧁","b","gf df keto highprotein",300,21,3,23,1.70,30,[["eggs",2,"each","D"],["bacon",1.5,"slice","M"],["spinach",.5,"cup","P"],["bell pepper",.25,"each","P"]],["Heat oven to 375°F and grease a muffin tin.","Whisk eggs with chopped cooked bacon, spinach and pepper.","Pour into cups and bake 18–20 minutes. They keep 4 days."]],
- ["b9","Spiced Pumpkin Pancakes","🎃","b","vegetarian comfort budget halloween",450,12,68,14,0.90,25,[["all-purpose flour",.5,"cup","C"],["pumpkin purée (15 oz)",.25,"can","C"],["eggs",.5,"each","D"],["milk",.5,"cup","D"],["butter",1,"tsp","D"],["pumpkin pie spice",.5,"tsp","S"],["baking powder",.5,"tsp","S"],["maple syrup",1,"tbsp","S"]],["Whisk flour, baking powder and spice.","Stir in pumpkin, egg and milk until just combined.","Cook ¼-cup scoops on a buttered griddle. Serve with maple."]],
- ["b10","Coconut Chia Pudding","🥥","bs","vegan vegetarian gf df keto healthy",290,8,12,24,1.40,5,[["chia seeds",3,"tbsp","N"],["light coconut milk",.5,"cup","C"],["raspberries",.25,"cup","P"],["vanilla extract",.25,"tsp","S"]],["Whisk chia, coconut milk and vanilla.","Rest 10 minutes, whisk again, then chill overnight.","Top with raspberries."]],
+ ["b1","Overnight Oats with Berries","🥣","b","vegan vegetarian df budget healthy",380,13,58,11,0.65,5,[["porridge oats",40,"g","C"],["soya milk",180,"ml","D"],["chia seeds",1,"tbsp","N"],["frozen mixed berries",75,"g","F"],["maple syrup",1,"tsp","S"]],["Stir oats, soya milk and chia together in a jar.","Top with berries and a drizzle of maple.","Chill overnight. Eat cold or microwave for 60 seconds."]],
+ ["b2","Greek Yoghurt Pot","🍯","bs","vegetarian gf mediterranean healthy highprotein",330,24,40,9,1.10,5,[["0% Greek-style yoghurt",200,"g","D"],["fresh berries",75,"g","P"],["walnuts",15,"g","N"],["honey",1,"tsp","S"]],["Spoon yoghurt into a bowl or glass.","Layer with berries and chopped walnuts.","Finish with honey."]],
+ ["b3","Veggie Scrambled Eggs on Toast","🍳","b","vegetarian df highprotein budget",410,24,30,20,0.95,15,[["free-range eggs",3,"each","D"],["baby spinach",30,"g","P"],["pepper",.5,"each","P"],["wholemeal bread",1,"slice","B"],["olive oil",1,"tsp","S"]],["Soften diced pepper in oil for 3 minutes.","Add spinach until wilted, then the beaten eggs.","Stir gently until just set. Serve on toast."]],
+ ["b4","Smashed Avocado & Egg on Toast","🥑","b","vegetarian df healthy",430,17,34,26,1.30,10,[["wholemeal bread",2,"slice","B"],["avocado",.5,"each","P"],["free-range eggs",1,"each","D"],["lemon",.25,"each","P"],["chilli flakes",.25,"tsp","S"]],["Toast the bread.","Smash avocado with lemon and salt; spread on toast.","Top with a poached or fried egg and chilli flakes."]],
+ ["b5","Turmeric Tofu Scramble","🌼","b","vegan vegetarian gf df highprotein healthy",340,24,14,21,1.05,15,[["firm tofu",200,"g","D"],["baby spinach",30,"g","P"],["cherry tomatoes",80,"g","P"],["corn tortillas",2,"each","B"],["ground turmeric",.25,"tsp","S"],["olive oil",1,"tsp","S"]],["Crumble tofu into a hot oiled pan.","Season with turmeric, salt and pepper; cook 5 minutes.","Fold in spinach and halved tomatoes. Serve in warm tortillas."]],
+ ["b6","Shakshuka","🍅","bd","vegetarian gf df mediterranean healthy",360,19,22,22,0.95,25,[["chopped tomatoes (400g tin)",.5,"tin","C"],["free-range eggs",2,"each","D"],["onion",.25,"each","P"],["pepper",.5,"each","P"],["garlic",1,"clove","P"],["ground cumin",.5,"tsp","S"],["smoked paprika",.5,"tsp","S"],["olive oil",1,"tbsp","S"]],["Soften onion, pepper and garlic in oil.","Add spices and tomatoes; simmer 10 minutes.","Make wells, crack in the eggs, cover and cook until the whites set."]],
+ ["b7","Peanut Butter Banana Smoothie","🍌","bs","vegan vegetarian gf df quick budget",420,18,52,17,0.75,5,[["banana",1,"each","P"],["soya milk",250,"ml","D"],["peanut butter",2,"tbsp","C"],["milled flaxseed",1,"tbsp","N"]],["Add everything to a blender with a few ice cubes.","Blend until smooth."]],
+ ["b8","Bacon & Spinach Egg Muffins","🧁","b","gf df keto highprotein",300,21,3,23,1.15,30,[["free-range eggs",2,"each","D"],["smoked back bacon",1.5,"rasher","M"],["baby spinach",15,"g","P"],["pepper",.25,"each","P"]],["Heat the oven to 190°C (170°C fan) and grease a muffin tin.","Whisk eggs with chopped cooked bacon, spinach and pepper.","Pour into the tin and bake 18–20 minutes. They keep 4 days in the fridge."]],
+ ["b9","Spiced Pumpkin Pancakes","🎃","b","vegetarian comfort budget halloween",450,12,68,14,0.65,25,[["plain flour",60,"g","C"],["pumpkin purée (425g tin)",.25,"tin","C"],["free-range eggs",.5,"each","D"],["semi-skimmed milk",125,"ml","D"],["butter",5,"g","D"],["mixed spice",.5,"tsp","S"],["baking powder",.5,"tsp","S"],["maple syrup",1,"tbsp","S"]],["Whisk flour, baking powder and mixed spice.","Stir in pumpkin, egg and milk until just combined.","Cook small ladlefuls in a buttered frying pan. Serve with maple."]],
+ ["b10","Coconut Chia Pudding","🥥","bs","vegan vegetarian gf df keto healthy",290,8,12,24,0.95,5,[["chia seeds",3,"tbsp","N"],["light coconut milk",120,"ml","C"],["raspberries",30,"g","P"],["vanilla extract",.25,"tsp","S"]],["Whisk chia, coconut milk and vanilla.","Rest 10 minutes, whisk again, then chill overnight.","Top with raspberries."]],
 
- ["l1","Mediterranean Chickpea Salad","🥗","l","vegan vegetarian gf df mediterranean healthy budget",450,16,52,21,1.80,15,[["chickpeas (15 oz)",.5,"can","C"],["cucumber",.5,"each","P"],["cherry tomatoes",.75,"cup","P"],["red onion",.125,"each","P"],["kalamata olives",1,"oz","C"],["parsley",.25,"bunch","P"],["lemon",.5,"each","P"],["olive oil",1,"tbsp","S"]],["Rinse chickpeas. Chop cucumber, tomatoes, onion and parsley.","Toss with olives, lemon juice, olive oil, salt and pepper.","Keeps 3 days, so make a double batch."]],
- ["l2","Turkey Hummus Wrap","🌯","l","df highprotein",480,32,44,18,2.60,10,[["whole-wheat tortillas",1,"each","B"],["sliced turkey",4,"oz","M"],["hummus",3,"tbsp","D"],["spinach",1,"cup","P"],["cucumber",.25,"each","P"]],["Spread hummus over the tortilla.","Layer turkey, spinach and sliced cucumber.","Roll tightly and halve."]],
- ["l3","Lemony Lentil Soup","🍲","ld","vegan vegetarian gf df mediterranean healthy budget comfort",390,20,58,8,1.10,40,[["red lentils",.5,"cup","C"],["carrot",1,"each","P"],["celery",1,"stalk","P"],["onion",.25,"each","P"],["vegetable broth",1.5,"cup","C"],["lemon",.25,"each","P"],["cumin",.5,"tsp","S"],["olive oil",1,"tsp","S"]],["Sauté onion, carrot and celery in oil for 5 minutes.","Add lentils, cumin and broth; simmer 20 minutes.","Blend partly for body, then finish with lemon juice."]],
- ["l4","Chicken Caesar Salad","🥬","l","gf keto highprotein",470,40,8,31,3.20,20,[["chicken breast",.33,"lb","M"],["romaine",.5,"head","P"],["parmesan",.5,"oz","D"],["Caesar dressing",2,"tbsp","C"],["lemon",.25,"each","P"]],["Season and sear chicken 6 minutes per side; rest and slice.","Chop romaine and toss with dressing and lemon.","Top with chicken and shaved parmesan. No croutons keeps it gluten-free."]],
- ["l5","Tuna & White Bean Salad","🐟","l","pescatarian gf df mediterranean highprotein budget",420,34,32,16,2.20,10,[["canned tuna (5 oz)",1,"can","M"],["cannellini beans (15 oz)",.5,"can","C"],["arugula",1.5,"cup","P"],["red onion",.125,"each","P"],["lemon",.5,"each","P"],["olive oil",1,"tbsp","S"]],["Drain tuna and beans.","Toss with thinly sliced onion, lemon and oil.","Serve over arugula."]],
- ["l6","Black Bean Quinoa Bowl","🌮","ld","vegan vegetarian gf df healthy budget mexican",520,19,80,14,1.70,25,[["quinoa",.33,"cup","C"],["black beans (15 oz)",.5,"can","C"],["frozen corn",.33,"cup","F"],["salsa",.25,"cup","C"],["avocado",.25,"each","P"],["lime",.5,"each","P"]],["Cook quinoa (1 part to 2 parts water, 15 minutes).","Warm beans and corn together.","Build bowls with salsa, avocado and lime."]],
- ["l7","Falafel Pita with Tzatziki","🧆","l","vegetarian mediterranean",560,20,70,22,2.30,25,[["frozen falafel",4,"each","F"],["pita bread",1,"each","B"],["tzatziki",3,"tbsp","D"],["cucumber",.25,"each","P"],["tomato",.5,"each","P"],["romaine",.25,"head","P"]],["Bake falafel per package directions.","Warm pita.","Stuff with lettuce, tomato, cucumber, falafel and tzatziki."]],
- ["l8","Peanut Soba Noodle Salad","🥜","l","vegan vegetarian df asian",510,18,68,19,2.00,20,[["soba noodles",3,"oz","C"],["frozen edamame",.5,"cup","F"],["carrot",1,"each","P"],["red cabbage",.125,"head","P"],["peanut butter",1.5,"tbsp","C"],["soy sauce",1,"tbsp","S"],["lime",.5,"each","P"]],["Cook soba with edamame for the last 2 minutes; rinse cold.","Whisk peanut butter, soy, lime and a splash of water.","Toss with shredded carrot and cabbage."]],
- ["l9","Egg Salad Lettuce Cups","🥚","l","vegetarian gf df keto budget",360,20,4,29,1.20,20,[["eggs",3,"each","D"],["mayonnaise",1.5,"tbsp","C"],["Dijon mustard",1,"tsp","C"],["butter lettuce",.5,"head","P"],["paprika",.25,"tsp","S"]],["Hard-boil eggs 10 minutes; cool in ice water.","Chop and mix with mayo, mustard, salt and pepper.","Spoon into lettuce leaves and dust with paprika."]],
- ["l10","Butternut Soup & Grilled Cheese","🎃","l","vegetarian comfort halloween",590,20,66,28,2.10,35,[["butternut squash",.5,"lb","P"],["vegetable broth",1,"cup","C"],["onion",.25,"each","P"],["sourdough bread",2,"slice","B"],["cheddar",1.5,"oz","D"],["butter",2,"tsp","D"]],["Simmer cubed squash and onion in broth until soft, about 20 minutes; blend.","Butter bread, fill with cheddar, and griddle until golden.","Cut into triangles for dipping."]],
- ["l11","Salmon Poke Bowl","🍣","ld","pescatarian df asian highprotein healthy",560,34,60,19,4.50,20,[["salmon fillet",.25,"lb","M"],["brown rice",.33,"cup","C"],["cucumber",.5,"each","P"],["frozen edamame",.25,"cup","F"],["avocado",.25,"each","P"],["soy sauce",1,"tbsp","S"],["sesame seeds",1,"tsp","S"]],["Cook rice. Roast salmon at 400°F for 12 minutes, or use sushi-grade raw.","Dice salmon and toss with soy sauce.","Build bowls with cucumber, edamame, avocado and sesame."]],
+ ["l1","Mediterranean Chickpea Salad","🥗","l","vegan vegetarian gf df mediterranean healthy budget",450,16,52,21,1.20,15,[["chickpeas (400g tin)",.5,"tin","C"],["cucumber",.5,"each","P"],["cherry tomatoes",110,"g","P"],["red onion",.125,"each","P"],["kalamata olives",30,"g","C"],["flat-leaf parsley",.25,"bunch","P"],["lemon",.5,"each","P"],["olive oil",1,"tbsp","S"]],["Rinse chickpeas. Chop cucumber, tomatoes, onion and parsley.","Toss with olives, lemon juice, olive oil, salt and pepper.","Keeps 3 days in the fridge, so make a double batch for lunchboxes."]],
+ ["l2","Turkey & Houmous Wrap","🌯","l","df highprotein",480,32,44,18,1.75,10,[["wholemeal wraps",1,"each","B"],["sliced turkey breast",110,"g","M"],["houmous",45,"g","D"],["baby spinach",30,"g","P"],["cucumber",.25,"each","P"]],["Spread houmous over the wrap.","Layer turkey, spinach and sliced cucumber.","Roll tightly and halve."]],
+ ["l3","Lemony Red Lentil Soup","🍲","ld","vegan vegetarian gf df mediterranean healthy budget comfort",390,20,58,8,0.65,40,[["red split lentils",100,"g","C"],["carrot",1,"each","P"],["celery",1,"stick","P"],["onion",.25,"each","P"],["vegetable stock cube (gluten-free)",.5,"each","S"],["lemon",.25,"each","P"],["ground cumin",.5,"tsp","S"],["olive oil",1,"tsp","S"]],["Soften onion, carrot and celery in oil for 5 minutes.","Add lentils, cumin, the crumbled stock cube and 375ml water per serving; simmer 20 minutes.","Blend partly for body, then finish with lemon juice."]],
+ ["l4","Chicken Caesar Salad","🥬","l","gf keto highprotein",470,40,8,31,2.20,20,[["chicken breast fillets",150,"g","M"],["romaine lettuce",.5,"each","P"],["parmesan",15,"g","D"],["Caesar dressing",2,"tbsp","C"],["lemon",.25,"each","P"]],["Season and pan-fry the chicken 6 minutes each side; rest and slice.","Chop the lettuce and toss with dressing and lemon.","Top with chicken and shaved parmesan. Skipping croutons keeps it gluten-free."]],
+ ["l5","Tuna & Cannellini Bean Salad","🐟","l","pescatarian gf df mediterranean highprotein budget",420,34,32,16,1.45,10,[["tuna in spring water (145g tin)",1,"tin","C"],["cannellini beans (400g tin)",.5,"tin","C"],["rocket",40,"g","P"],["red onion",.125,"each","P"],["lemon",.5,"each","P"],["olive oil",1,"tbsp","S"]],["Drain the tuna and beans.","Toss with thinly sliced onion, lemon juice and oil.","Serve over rocket."]],
+ ["l6","Black Bean Quinoa Bowl","🌮","ld","vegan vegetarian gf df healthy budget mexican",520,19,80,14,1.15,25,[["quinoa",60,"g","C"],["black beans (400g tin)",.5,"tin","C"],["frozen sweetcorn",50,"g","F"],["tomato salsa",60,"g","C"],["avocado",.25,"each","P"],["lime",.5,"each","P"]],["Cook quinoa (1 part to 2 parts water, 15 minutes).","Warm the beans and sweetcorn together.","Build bowls with salsa, avocado and a squeeze of lime."]],
+ ["l7","Falafel Pitta with Tzatziki","🧆","l","vegetarian mediterranean",560,20,70,22,1.50,25,[["falafel",4,"each","D"],["wholemeal pitta",1,"each","B"],["tzatziki",45,"g","D"],["cucumber",.25,"each","P"],["tomato",.5,"each","P"],["romaine lettuce",.25,"each","P"]],["Warm the falafel per the pack.","Toast the pitta and split it open.","Stuff with lettuce, tomato, cucumber, falafel and tzatziki."]],
+ ["l8","Peanut Soba Noodle Salad","🥜","l","vegan vegetarian df asian",510,18,68,19,1.30,20,[["soba noodles",85,"g","C"],["frozen edamame beans",75,"g","F"],["carrot",1,"each","P"],["red cabbage",.125,"each","P"],["peanut butter",1.5,"tbsp","C"],["soy sauce",1,"tbsp","S"],["lime",.5,"each","P"]],["Cook soba with edamame for the last 2 minutes; rinse under cold water.","Whisk peanut butter, soy, lime and a splash of water.","Toss with grated carrot and shredded cabbage."]],
+ ["l9","Egg Mayo Lettuce Cups","🥚","l","vegetarian gf df keto budget",360,20,4,29,0.80,20,[["free-range eggs",3,"each","D"],["mayonnaise",1.5,"tbsp","C"],["Dijon mustard",1,"tsp","C"],["little gem lettuce",1,"each","P"],["paprika",.25,"tsp","S"]],["Hard-boil the eggs for 10 minutes; cool in cold water.","Chop and mix with mayo, mustard, salt and pepper.","Spoon into lettuce leaves and dust with paprika."]],
+ ["l10","Butternut Soup & Cheese Toastie","🎃","l","vegetarian comfort halloween",590,20,66,28,1.35,35,[["butternut squash",.25,"each","P"],["vegetable stock cube",.3,"each","S"],["onion",.25,"each","P"],["sourdough bread",2,"slice","B"],["mature cheddar",40,"g","D"],["butter",10,"g","D"]],["Simmer cubed squash and onion with the stock cube and 250ml water per serving until soft, about 20 minutes; blend.","Butter the bread, fill with cheddar and fry until golden.","Cut into soldiers for dipping."]],
+ ["l11","Salmon Poke Bowl","🍣","ld","pescatarian df asian highprotein healthy",560,34,60,19,2.80,20,[["salmon fillets",1,"each","M"],["brown rice",60,"g","C"],["cucumber",.5,"each","P"],["frozen edamame beans",40,"g","F"],["avocado",.25,"each","P"],["soy sauce",1,"tbsp","S"],["sesame seeds",1,"tsp","S"]],["Cook the rice. Roast salmon at 200°C (180°C fan) for 12 minutes.","Flake the salmon and toss with soy sauce.","Build bowls with cucumber, edamame, avocado and sesame."]],
 
- ["d1","Sheet-Pan Lemon Herb Chicken","🍋","d","gf df mediterranean healthy highprotein",520,42,38,20,3.40,40,[["boneless chicken thighs",.4,"lb","M"],["baby potatoes",.33,"lb","P"],["broccoli",.33,"head","P"],["lemon",.5,"each","P"],["garlic",2,"clove","P"],["dried oregano",1,"tsp","S"],["olive oil",1,"tbsp","S"]],["Heat oven to 425°F.","Toss chicken, halved potatoes and garlic with oil, oregano, lemon zest and salt; roast 20 minutes.","Add broccoli and roast 15 more. Squeeze lemon over everything."]],
- ["d2","Baked Salmon, Quinoa & Asparagus","🐟","d","pescatarian gf df mediterranean healthy highprotein",560,38,40,26,5.20,30,[["salmon fillet",.33,"lb","M"],["quinoa",.33,"cup","C"],["asparagus",.33,"bunch","P"],["lemon",.5,"each","P"],["garlic",1,"clove","P"],["olive oil",1,"tsp","S"]],["Cook quinoa.","Lay salmon and asparagus on a sheet pan with oil, garlic and lemon slices.","Bake at 400°F for 12–14 minutes."]],
- ["d3","Turkey & Bean Chili","🌶️","ld","gf df highprotein budget comfort mexican",480,36,42,16,2.60,45,[["ground turkey",.33,"lb","M"],["kidney beans (15 oz)",.5,"can","C"],["crushed tomatoes (28 oz)",.25,"can","C"],["onion",.25,"each","P"],["bell pepper",.5,"each","P"],["chili powder",2,"tsp","S"]],["Brown turkey with onion and pepper.","Add chili powder, tomatoes and beans.","Simmer 30 minutes. Even better the next day."]],
- ["d4","Chickpea Coconut Curry","🍛","d","vegan vegetarian gf df budget healthy asian",540,16,64,24,1.90,30,[["chickpeas (15 oz)",.5,"can","C"],["light coconut milk",.5,"cup","C"],["spinach",1.5,"cup","P"],["crushed tomatoes (28 oz)",.125,"can","C"],["onion",.25,"each","P"],["garlic",1,"clove","P"],["curry powder",2,"tsp","S"],["basmati rice",.33,"cup","C"]],["Cook rice.","Sauté onion and garlic, add curry powder for 30 seconds.","Add tomatoes, coconut milk and chickpeas; simmer 15 minutes. Stir in spinach."]],
- ["d5","Lentil Bolognese Pasta","🍝","d","vegan vegetarian df budget mediterranean comfort",580,24,96,9,1.80,40,[["whole-wheat spaghetti",3,"oz","C"],["brown lentils",.25,"cup","C"],["crushed tomatoes (28 oz)",.25,"can","C"],["carrot",.5,"each","P"],["onion",.25,"each","P"],["garlic",1,"clove","P"],["Italian seasoning",1,"tsp","S"],["olive oil",1,"tsp","S"]],["Sauté finely diced onion, carrot and garlic.","Add lentils, tomatoes, seasoning and 1 cup water per 2 servings; simmer 25 minutes.","Toss with cooked spaghetti."]],
- ["d6","Beef & Broccoli Stir-Fry","🥦","d","df asian highprotein comfort",610,36,62,22,3.60,25,[["flank steak",.33,"lb","M"],["broccoli",.33,"head","P"],["jasmine rice",.33,"cup","C"],["soy sauce",1.5,"tbsp","S"],["garlic",1,"clove","P"],["fresh ginger",.25,"oz","P"],["cornstarch",1,"tsp","C"]],["Cook rice. Slice beef thin against the grain and toss with cornstarch.","Sear beef in a very hot pan; remove.","Stir-fry broccoli, garlic and ginger, return beef with soy sauce and a splash of water."]],
- ["d7","Shrimp Tacos with Lime Slaw","🌮","d","pescatarian gf df mexican highprotein",490,30,48,19,4.10,20,[["frozen shrimp",.33,"lb","F"],["corn tortillas",3,"each","B"],["red cabbage",.125,"head","P"],["lime",.5,"each","P"],["avocado",.25,"each","P"],["chili powder",1,"tsp","S"]],["Toss thawed shrimp with chili powder and salt; sear 2 minutes per side.","Shred cabbage and toss with lime juice and salt.","Fill warm tortillas with shrimp, slaw and avocado."]],
- ["d8","Greek Chicken Souvlaki Bowls","🥙","d","gf mediterranean highprotein healthy",560,44,48,20,3.50,35,[["chicken breast",.33,"lb","M"],["brown rice",.33,"cup","C"],["cucumber",.5,"each","P"],["cherry tomatoes",.5,"cup","P"],["tzatziki",3,"tbsp","D"],["feta",.5,"oz","D"],["lemon",.5,"each","P"],["dried oregano",1,"tsp","S"]],["Marinate cubed chicken in lemon, oregano and salt for 15 minutes.","Grill or pan-sear 8–10 minutes. Cook the rice.","Build bowls with cucumber, tomatoes, feta and tzatziki."]],
- ["d9","Black Bean Stuffed Peppers","🫑","d","vegan vegetarian gf df budget mexican healthy",450,15,74,10,1.70,45,[["bell pepper",1.5,"each","P"],["black beans (15 oz)",.5,"can","C"],["brown rice",.25,"cup","C"],["salsa",.25,"cup","C"],["frozen corn",.25,"cup","F"],["cumin",.5,"tsp","S"]],["Cook rice. Halve and seed peppers.","Mix rice, beans, corn, salsa and cumin; pack into peppers.","Cover and bake at 375°F for 30 minutes."]],
- ["d10","Pesto Zoodles with Chicken","🌿","d","gf keto highprotein",470,38,12,30,3.30,20,[["zucchini",2,"each","P"],["chicken breast",.33,"lb","M"],["basil pesto",2,"tbsp","C"],["cherry tomatoes",.5,"cup","P"],["parmesan",.25,"oz","D"]],["Spiralize zucchini.","Sear sliced chicken until cooked through.","Toss zoodles in the pan for 2 minutes with pesto and tomatoes; top with parmesan."]],
- ["d11","Garlic Steak & Cauliflower Mash","🥩","d","gf keto highprotein comfort",620,45,14,42,6.00,35,[["sirloin steak",.4,"lb","M"],["cauliflower",.5,"head","P"],["green beans",.25,"lb","P"],["butter",1,"tbsp","D"],["garlic",2,"clove","P"]],["Steam cauliflower until very soft; mash with half the butter and garlic.","Sear steak 3–4 minutes per side; baste with remaining butter and garlic; rest 5 minutes.","Blister green beans in the same pan."]],
- ["d12","Tofu Veggie Stir-Fry","🥢","d","vegan vegetarian gf df asian healthy",470,24,52,18,2.10,25,[["extra-firm tofu",7,"oz","D"],["frozen stir-fry vegetables",1.5,"cup","F"],["jasmine rice",.33,"cup","C"],["tamari",1.5,"tbsp","S"],["garlic",1,"clove","P"],["sesame oil",1,"tsp","S"]],["Cook rice. Press and cube tofu.","Brown tofu in sesame oil; remove.","Stir-fry vegetables and garlic, return tofu with tamari."]],
- ["d13","Jack-o'-Lantern Pumpkin Chili","🎃","ld","vegan vegetarian gf df budget comfort healthy halloween",430,18,70,8,1.60,45,[["pumpkin purée (15 oz)",.25,"can","C"],["black beans (15 oz)",.5,"can","C"],["kidney beans (15 oz)",.25,"can","C"],["crushed tomatoes (28 oz)",.25,"can","C"],["onion",.25,"each","P"],["bell pepper",.5,"each","P"],["chili powder",2,"tsp","S"],["cinnamon",.125,"tsp","S"]],["Soften onion and pepper.","Add everything else plus a cup of water per 4 servings.","Simmer 30 minutes. Serve in hollowed mini pumpkins for maximum spook."]],
- ["d14","Mediterranean Baked Cod","🐠","d","pescatarian gf df mediterranean keto healthy highprotein",380,36,12,20,4.80,25,[["cod fillet",.4,"lb","F"],["cherry tomatoes",.75,"cup","P"],["kalamata olives",1,"oz","C"],["capers",1,"tsp","C"],["green beans",.25,"lb","P"],["garlic",1,"clove","P"],["olive oil",1,"tbsp","S"]],["Heat oven to 400°F.","Nestle cod among tomatoes, olives, capers, green beans and garlic; drizzle with oil.","Bake 15–18 minutes until the fish flakes."]],
- ["d15","Witch's Hair Squash & Meatballs","🧙","d","gf df highprotein comfort healthy halloween",510,38,30,26,3.30,55,[["spaghetti squash",.5,"each","P"],["ground turkey",.33,"lb","M"],["crushed tomatoes (28 oz)",.25,"can","C"],["eggs",.25,"each","D"],["garlic",1,"clove","P"],["Italian seasoning",1,"tsp","S"]],["Roast halved squash cut-side down at 400°F for 40 minutes.","Mix turkey, egg, garlic and seasoning; roll meatballs and simmer in tomatoes 20 minutes.","Fork the squash into green-tinged witch's hair strands and top with meatballs."]],
- ["d16","Sweet Potato Black Bean Enchiladas","🍠","d","vegetarian gf mexican comfort",560,19,82,18,2.20,45,[["sweet potato",.5,"lb","P"],["black beans (15 oz)",.5,"can","C"],["corn tortillas",3,"each","B"],["enchilada sauce",.5,"cup","C"],["Mexican cheese blend",1,"oz","D"],["cumin",.5,"tsp","S"]],["Roast or microwave diced sweet potato until tender; mash with beans and cumin.","Roll filling in warm tortillas, seam-down in a dish.","Cover with sauce and cheese; bake at 375°F for 20 minutes."]],
+ ["d1","Traybake Lemon & Herb Chicken","🍋","d","gf df mediterranean healthy highprotein",520,42,38,20,2.10,40,[["boneless chicken thighs",180,"g","M"],["baby potatoes",150,"g","P"],["broccoli",.33,"each","P"],["lemon",.5,"each","P"],["garlic",2,"clove","P"],["dried oregano",1,"tsp","S"],["olive oil",1,"tbsp","S"]],["Heat the oven to 220°C (200°C fan).","Toss chicken, halved potatoes and garlic with oil, oregano, lemon zest and salt; roast 20 minutes.","Add broccoli and roast 15 minutes more. Squeeze over the lemon."]],
+ ["d2","Baked Salmon, Quinoa & Asparagus","🐟","d","pescatarian gf df mediterranean healthy highprotein",560,38,40,26,3.40,30,[["salmon fillets",1,"each","M"],["quinoa",60,"g","C"],["asparagus",.33,"bunch","P"],["lemon",.5,"each","P"],["garlic",1,"clove","P"],["olive oil",1,"tsp","S"]],["Cook the quinoa.","Lay salmon and asparagus on a baking tray with oil, garlic and lemon slices.","Bake at 200°C (180°C fan) for 12–14 minutes."]],
+ ["d3","Turkey & Bean Chilli","🌶️","ld","gf df highprotein budget comfort mexican",480,36,42,16,1.60,45,[["turkey mince",150,"g","M"],["kidney beans (400g tin)",.5,"tin","C"],["chopped tomatoes (400g tin)",.5,"tin","C"],["onion",.25,"each","P"],["pepper",.5,"each","P"],["chilli powder",2,"tsp","S"]],["Brown the mince with onion and pepper.","Add chilli powder, tomatoes and beans.","Simmer 30 minutes. Even better the next day."]],
+ ["d4","Chickpea & Coconut Curry","🍛","d","vegan vegetarian gf df budget healthy asian",540,16,64,24,1.15,30,[["chickpeas (400g tin)",.5,"tin","C"],["light coconut milk",120,"ml","C"],["baby spinach",45,"g","P"],["chopped tomatoes (400g tin)",.25,"tin","C"],["onion",.25,"each","P"],["garlic",1,"clove","P"],["curry powder",2,"tsp","S"],["basmati rice",60,"g","C"]],["Cook the rice.","Soften onion and garlic, then add curry powder for 30 seconds.","Add tomatoes, coconut milk and chickpeas; simmer 15 minutes. Stir in spinach."]],
+ ["d5","Lentil Bolognese","🍝","d","vegan vegetarian df budget mediterranean comfort",580,24,96,9,0.95,40,[["wholewheat spaghetti",85,"g","C"],["dried green lentils",50,"g","C"],["chopped tomatoes (400g tin)",.5,"tin","C"],["carrot",.5,"each","P"],["onion",.25,"each","P"],["garlic",1,"clove","P"],["dried mixed herbs",1,"tsp","S"],["olive oil",1,"tsp","S"]],["Soften finely diced onion, carrot and garlic.","Add lentils, tomatoes, herbs and 125ml water per serving; simmer 25 minutes.","Toss with cooked spaghetti."]],
+ ["d6","Beef & Broccoli Stir-Fry","🥦","d","df asian highprotein comfort",610,36,62,22,2.50,25,[["beef frying steak",150,"g","M"],["broccoli",.33,"each","P"],["jasmine rice",60,"g","C"],["soy sauce",1.5,"tbsp","S"],["garlic",1,"clove","P"],["fresh ginger",7,"g","P"],["cornflour",1,"tsp","C"]],["Cook the rice. Slice the beef thinly against the grain and toss with cornflour.","Sear the beef in a very hot wok; set aside.","Stir-fry broccoli, garlic and ginger, then return the beef with soy sauce and a splash of water."]],
+ ["d7","Prawn Tacos with Lime Slaw","🌮","d","pescatarian gf df mexican highprotein",490,30,48,19,2.60,20,[["frozen king prawns",150,"g","F"],["corn tortillas",3,"each","B"],["red cabbage",.125,"each","P"],["lime",.5,"each","P"],["avocado",.25,"each","P"],["chilli powder",1,"tsp","S"]],["Toss defrosted prawns with chilli powder and salt; fry 2 minutes each side.","Shred the cabbage and toss with lime juice and salt.","Fill warm tortillas with prawns, slaw and avocado."]],
+ ["d8","Greek Chicken Souvlaki Bowls","🥙","d","gf mediterranean highprotein healthy",560,44,48,20,2.20,35,[["chicken breast fillets",150,"g","M"],["brown rice",60,"g","C"],["cucumber",.5,"each","P"],["cherry tomatoes",80,"g","P"],["tzatziki",45,"g","D"],["feta",15,"g","D"],["lemon",.5,"each","P"],["dried oregano",1,"tsp","S"]],["Marinate cubed chicken in lemon, oregano and salt for 15 minutes.","Griddle or pan-fry 8–10 minutes. Cook the rice.","Build bowls with cucumber, tomatoes, feta and tzatziki."]],
+ ["d9","Black Bean Stuffed Peppers","🫑","d","vegan vegetarian gf df budget mexican healthy",450,15,74,10,1.10,45,[["pepper",1.5,"each","P"],["black beans (400g tin)",.5,"tin","C"],["brown rice",45,"g","C"],["tomato salsa",60,"g","C"],["frozen sweetcorn",40,"g","F"],["ground cumin",.5,"tsp","S"]],["Cook the rice. Halve and deseed the peppers.","Mix rice, beans, sweetcorn, salsa and cumin; pack into the peppers.","Cover with foil and bake at 190°C (170°C fan) for 30 minutes."]],
+ ["d10","Pesto Courgetti with Chicken","🌿","d","gf keto highprotein",470,38,12,30,2.15,20,[["courgettes",2,"each","P"],["chicken breast fillets",150,"g","M"],["green pesto",2,"tbsp","C"],["cherry tomatoes",80,"g","P"],["parmesan",7,"g","D"]],["Spiralize the courgettes (or buy ready-made courgetti).","Fry sliced chicken until cooked through.","Toss courgetti in the pan for 2 minutes with pesto and tomatoes; top with parmesan."]],
+ ["d11","Garlic Steak & Cauliflower Mash","🥩","d","gf keto highprotein comfort",620,45,14,42,3.90,35,[["sirloin steak",180,"g","M"],["cauliflower",.5,"each","P"],["green beans",110,"g","P"],["butter",15,"g","D"],["garlic",2,"clove","P"]],["Steam the cauliflower until very soft; mash with half the butter and garlic.","Sear the steak 3–4 minutes each side, basting with the rest of the butter and garlic; rest 5 minutes.","Blister the green beans in the same pan."]],
+ ["d12","Tofu Veggie Stir-Fry","🥢","d","vegan vegetarian gf df asian healthy",470,24,52,18,1.30,25,[["firm tofu",200,"g","D"],["frozen stir-fry veg",150,"g","F"],["jasmine rice",60,"g","C"],["tamari",1.5,"tbsp","S"],["garlic",1,"clove","P"],["sesame oil",1,"tsp","S"]],["Cook the rice. Press and cube the tofu.","Brown the tofu in sesame oil; set aside.","Stir-fry the veg and garlic, then return the tofu with tamari."]],
+ ["d13","Jack-o'-Lantern Pumpkin Chilli","🎃","ld","vegan vegetarian gf df budget comfort healthy halloween",430,18,70,8,0.95,45,[["pumpkin purée (425g tin)",.25,"tin","C"],["black beans (400g tin)",.5,"tin","C"],["kidney beans (400g tin)",.25,"tin","C"],["chopped tomatoes (400g tin)",.5,"tin","C"],["onion",.25,"each","P"],["pepper",.5,"each","P"],["chilli powder",2,"tsp","S"],["ground cinnamon",.125,"tsp","S"]],["Soften the onion and pepper.","Add everything else plus 60ml water per serving.","Simmer 30 minutes. Serve in hollowed-out mini pumpkins for maximum spook."]],
+ ["d14","Mediterranean Baked Cod","🐠","d","pescatarian gf df mediterranean keto healthy highprotein",380,36,12,20,2.90,25,[["frozen cod fillets",180,"g","F"],["cherry tomatoes",110,"g","P"],["kalamata olives",30,"g","C"],["capers",1,"tsp","C"],["green beans",110,"g","P"],["garlic",1,"clove","P"],["olive oil",1,"tbsp","S"]],["Heat the oven to 200°C (180°C fan).","Nestle the cod among tomatoes, olives, capers, green beans and garlic; drizzle with oil.","Bake 15–18 minutes until the fish flakes."]],
+ ["d15","Witch's Hair Squash & Meatballs","🧙","d","gf df highprotein comfort healthy halloween",510,38,30,26,2.05,55,[["spaghetti squash (or butternut)",.5,"each","P"],["turkey mince",150,"g","M"],["chopped tomatoes (400g tin)",.5,"tin","C"],["free-range eggs",.25,"each","D"],["garlic",1,"clove","P"],["dried mixed herbs",1,"tsp","S"]],["Roast the halved squash cut-side down at 200°C (180°C fan) for 40 minutes.","Mix mince, egg, garlic and herbs; roll meatballs and simmer in the tomatoes for 20 minutes.","Fork the squash into witch's-hair strands and top with the meatballs."]],
+ ["d16","Sweet Potato & Black Bean Enchiladas","🍠","d","vegetarian gf mexican comfort",560,19,82,18,1.40,45,[["sweet potato",225,"g","P"],["black beans (400g tin)",.5,"tin","C"],["corn tortillas",3,"each","B"],["passata",120,"ml","C"],["grated mozzarella & cheddar",30,"g","D"],["ground cumin",.5,"tsp","S"],["chilli powder",.5,"tsp","S"]],["Roast or microwave diced sweet potato until tender; mash with the beans and cumin.","Roll the filling in warm tortillas and lay seam-down in a dish.","Mix passata with chilli powder, pour over, add cheese and bake at 190°C (170°C fan) for 20 minutes."]],
 
- ["s1","Apple & Peanut Butter","🍎","s","vegan vegetarian gf df budget",260,7,30,16,0.70,2,[["apple",1,"each","P"],["peanut butter",1.5,"tbsp","C"]],["Slice apple and dip."]],
- ["s2","Hummus & Crunchy Veg","🥕","s","vegan vegetarian gf df mediterranean healthy",200,7,22,10,1.00,5,[["hummus",4,"tbsp","D"],["baby carrots",3,"oz","P"],["cucumber",.25,"each","P"]],["Cut cucumber into spears and serve with carrots and hummus."]],
- ["s3","Cottage Cheese & Berries","🫐","s","vegetarian gf highprotein healthy",190,20,16,5,1.10,2,[["cottage cheese",.75,"cup","D"],["fresh berries",.33,"cup","P"]],["Top cottage cheese with berries."]],
- ["s4","Roasted Pumpkin Seeds","🎃","s","vegan vegetarian gf df keto budget halloween",180,9,5,15,0.40,20,[["pepitas",1,"oz","N"],["smoked paprika",.25,"tsp","S"],["olive oil",.5,"tsp","S"]],["Toss seeds with oil, paprika and salt.","Roast at 325°F for 12–15 minutes, shaking once.","Carving a jack-o'-lantern? Rinse and dry those seeds and use them instead."]],
- ["s5","Eggs & Cherry Tomatoes","🥚","s","vegetarian gf df keto highprotein budget",170,13,4,10,0.60,12,[["eggs",2,"each","D"],["cherry tomatoes",.5,"cup","P"]],["Hard-boil eggs 10 minutes, cool, and season with salt and pepper."]],
- ["s6","Trail Mix","🥜","s","vegan vegetarian gf df",280,8,24,18,0.90,1,[["trail mix",1.5,"oz","N"]],["Portion into small bags for the week."]],
- ["s7","Cheese & Almonds","🧀","s","vegetarian gf keto",250,12,5,21,1.20,1,[["cheddar",1,"oz","D"],["almonds",.75,"oz","N"]],["Cube cheese and pair with almonds."]],
- ["s8","Sea Salt Edamame","🫛","s","vegan vegetarian gf df highprotein healthy asian",190,17,14,8,0.90,6,[["frozen edamame",1,"cup","F"]],["Microwave or boil 4 minutes; sprinkle with flaky salt."]]
+ ["s1","Apple & Peanut Butter","🍎","s","vegan vegetarian gf df budget",260,7,30,16,0.45,2,[["apples",1,"each","P"],["peanut butter",1.5,"tbsp","C"]],["Slice the apple and dip."]],
+ ["s2","Houmous & Crunchy Veg","🥕","s","vegan vegetarian gf df mediterranean healthy",200,7,22,10,0.70,5,[["houmous",60,"g","D"],["carrot batons",85,"g","P"],["cucumber",.25,"each","P"]],["Cut the cucumber into sticks and serve with carrots and houmous."]],
+ ["s3","Cottage Cheese & Berries","🫐","s","vegetarian gf highprotein healthy",190,20,16,5,0.80,2,[["cottage cheese",170,"g","D"],["fresh berries",50,"g","P"]],["Top the cottage cheese with berries."]],
+ ["s4","Roasted Pumpkin Seeds","🎃","s","vegan vegetarian gf df keto budget halloween",180,9,5,15,0.35,20,[["pumpkin seeds",30,"g","N"],["smoked paprika",.25,"tsp","S"],["olive oil",.5,"tsp","S"]],["Toss seeds with oil, paprika and salt.","Roast at 160°C (140°C fan) for 12–15 minutes, shaking once.","Carving a jack-o'-lantern? Rinse and dry those seeds and use them instead."]],
+ ["s5","Boiled Eggs & Cherry Tomatoes","🥚","s","vegetarian gf df keto highprotein budget",170,13,4,10,0.45,12,[["free-range eggs",2,"each","D"],["cherry tomatoes",80,"g","P"]],["Boil the eggs for 10 minutes, cool, and season with salt and pepper."]],
+ ["s6","Fruit & Nut Mix","🥜","s","vegan vegetarian gf df",280,8,24,18,0.55,1,[["fruit & nut mix",40,"g","N"]],["Portion into small tubs for the week."]],
+ ["s7","Cheddar & Almonds","🧀","s","vegetarian gf keto",250,12,5,21,0.75,1,[["mature cheddar",30,"g","D"],["almonds",20,"g","N"]],["Cube the cheese and pair with almonds."]],
+ ["s8","Sea Salt Edamame","🫛","s","vegan vegetarian gf df highprotein healthy asian",190,17,14,8,0.60,6,[["frozen edamame beans",150,"g","F"]],["Microwave or boil for 4 minutes; sprinkle with sea salt flakes."]]
 ];
 const toRecipe = a => ({ id: a[0], name: a[1], emoji: a[2], meals: a[3], tags: withQuick(a[4].split(" "), a[10]), kcal: a[5], protein: a[6], carbs: a[7], fat: a[8], cost: a[9], time: a[10], ing: a[11], steps: a[12] });
 function withQuick(tags, time) { return time <= 25 && !tags.includes("quick") ? tags.concat("quick") : tags; }
@@ -321,18 +321,18 @@ const RESTRICT = [["vegetarian","Vegetarian"],["vegan","Vegan"],["pescatarian","
 const STYLES = [["healthy","Healthier"],["mediterranean","Mediterranean"],["highprotein","High protein"],["budget","Budget-friendly"],["quick","Quick (25 min or less)"],["comfort","Comfort food"],["mexican","Mexican-inspired"],["asian","Asian-inspired"],["halloween","Spooky specials"]];
 const TAGLABEL = Object.fromEntries([...RESTRICT, ...STYLES, ["custom","Custom"]].map(([k, v]) => [k, v.replace(/ \(.*\)/, "")]));
 TAGLABEL.gf = "GF"; TAGLABEL.df = "Dairy-free"; TAGLABEL.halloween = "Spooky";
-/* Price index vs. US national average grocery prices. Rough starting points; edit them in Household. */
+/* Price index vs. an average UK supermarket basket. Rough starting points; edit them in Household. */
 const STORES = [
- ["aldi","Aldi",.78],["lidl","Lidl",.79],["winco","WinCo",.80],["costco","Costco",.80],["walmart","Walmart",.84],["heb","H-E-B",.88],
- ["traderjoes","Trader Joe's",.90],["meijer","Meijer",.92],["kroger","Kroger",.95],["foodlion","Food Lion",.96],["target","Target",.97],
- ["wegmans","Wegmans",1.02],["sprouts","Sprouts",1.08],["publix","Publix",1.12],["safeway","Safeway",1.14],["wholefoods","Whole Foods",1.22]
+ ["aldi","Aldi",.82],["lidl","Lidl",.83],["asda","Asda",.90],["tesco","Tesco (Clubcard prices)",.94],["iceland","Iceland",.95],
+ ["sainsburys","Sainsbury's (Nectar prices)",.96],["morrisons","Morrisons",1.00],["ocado","Ocado",1.06],["coop","Co-op",1.12],
+ ["waitrose","Waitrose",1.18],["mands","M&S Food",1.22]
 ];
 const SLOT = { breakfast: "Breakfast", lunch: "Lunch", dinner: "Dinner", snack: "Snack" };
 const SHARE4 = { breakfast: .25, lunch: .30, dinner: .35, snack: .10 };
 const SHARE3 = { breakfast: .28, lunch: .32, dinner: .40 };
 
 /* ---------- state ---------- */
-const LS_KEY = "cauldron-planner-v1";
+const LS_KEY = "cauldron-planner-uk-v1";
 function todayISO() { const d = new Date(); return iso(d); }
 function iso(d) { return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0"); }
 function parseISO(s) { const [y, m, d] = s.split("-").map(Number); return new Date(y, m - 1, d); }
@@ -342,7 +342,7 @@ function defaultState() {
     v: 1, example: true,
     members: [{ id: "m1", name: "Alex", kcal: 2200 }, { id: "m2", name: "Sam", kcal: 1800 }, { id: "m3", name: "Kiddo (8)", kcal: 1400 }],
     restrict: [], styles: ["healthy", "mediterranean"], avoid: "",
-    budget: 175, storesOn: ["aldi", "walmart", "traderjoes"], storeIdx: {}, customStores: [],
+    budget: 120, storesOn: ["aldi", "tesco", "sainsburys"], storeIdx: {}, customStores: [],
     start: todayISO(), days: 7, snacks: true, seed: 20261031,
     plan: [], checked: {}, hidePantry: true, custom: [], dirty: false,
     tab: "today", day: 0, updatedAt: 0
@@ -395,8 +395,8 @@ function setSync(mode) {
 
 /* ---------- helpers ---------- */
 const esc = s => String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
-const money = n => "$" + (Math.round(n * 100) / 100).toFixed(2);
-const money0 = n => "$" + Math.round(n).toLocaleString();
+const money = n => "£" + (Math.round(n * 100) / 100).toFixed(2);
+const money0 = n => "£" + Math.round(n).toLocaleString("en-GB");
 const k = n => Math.round(n).toLocaleString();
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 function mulberry(a) { return () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
@@ -509,18 +509,22 @@ function swapMeal(d, s) {
 }
 
 /* ---------- groceries ---------- */
-const COUNT = ["each", "can", "slice", "head", "bunch", "clove", "stalk"];
-const PLURAL = { can: "cans", slice: "slices", head: "heads", bunch: "bunches", clove: "cloves", stalk: "stalks", cup: "cups" };
+const COUNT = ["each", "tin", "slice", "bunch", "clove", "stick", "rasher"];
+const PLURAL = { tin: "tins", slice: "slices", bunch: "bunches", clove: "cloves", stick: "sticks", rasher: "rashers" };
 function frac(q) {
   const w = Math.floor(q + 1e-9), f = Math.round((q - w) * 4) / 4;
   const g = { 0: "", .25: "¼", .5: "½", .75: "¾", 1: "" }[f];
   const whole = f === 1 ? w + 1 : w;
   return (whole ? whole : "") + g || "0";
 }
+/* buy = rounded up to what you'd pick off the shelf; otherwise kitchen-scale amounts */
 function fmtQty(q, unit, buy) {
+  if (unit === "g" || unit === "ml") {
+    if (q >= 1000) return (Math.ceil(q / 100) / 10).toLocaleString("en-GB") + (unit === "g" ? " kg" : " litres");
+    const step = buy ? (q < 100 ? 5 : q < 400 ? 10 : 50) : (q < 20 ? 1 : 5);
+    return Math.max(step, Math.ceil(q / step - .01) * step) + " " + unit;
+  }
   if (unit === "tsp" && q >= 3) { q /= 3; unit = "tbsp"; }
-  if (unit === "tbsp" && q >= 8) { q /= 16; unit = "cup"; }
-  if (unit === "oz" && q >= 16) { q /= 16; unit = "lb"; }
   if (buy && COUNT.includes(unit)) q = Math.ceil(q - .05);
   else q = Math.max(.25, Math.ceil(q * 4 - .1) / 4);
   const n = frac(q);
@@ -571,7 +575,7 @@ function banners() {
   if (last && last < todayISO()) h += `<div class="banner"><p>This plan ended on ${fmtDate(last)}.</p><button class="btn primary sm" data-act="fromToday">Plan from today</button></div>`;
   return h;
 }
-function fmtDate(s, opts = { weekday: "short", month: "short", day: "numeric" }) { return parseISO(s).toLocaleDateString(undefined, opts); }
+function fmtDate(s, opts = { weekday: "short", month: "short", day: "numeric" }) { return parseISO(s).toLocaleDateString("en-GB", opts); }
 function costClass(c, b) { return c > b * 1.1 ? "bad" : c > b ? "warn" : ""; }
 function tagChips(r, max = 4) {
   const order = ["halloween", "custom", ...RESTRICT.map(x => x[0]), ...STYLES.map(x => x[0])];
@@ -665,12 +669,12 @@ function viewGroceries() {
     return `<div class="aisle"><h3>${AISLES[a]}</h3>${list.map(i => `<label class="item ${state.checked[i.key] ? "done" : ""}"><input type="checkbox" data-check="${esc(i.key)}" ${state.checked[i.key] ? "checked" : ""}><span class="nm">${esc(i.name)}</span><span class="q">${fmtQty(i.qty, i.unit, true)}</span></label>`).join("")}</div>`;
   }).join("");
   return banners() + `<section class="panel stack">
-    <div class="row"><div class="grow"><h2>Store comparison</h2><span class="sub">Estimated total for ${state.plan.length} days. The yellow line is your ${money0(budget)} budget. Prices are rough indexes you can tune in Household.</span></div></div>
+    <div class="row"><div class="grow"><h2>Supermarket comparison</h2><span class="sub">Estimated total for ${state.plan.length} days. The yellow line is your ${money0(budget)} budget. Prices are rough UK estimates you can tune in Household.</span></div></div>
     <div class="storebars">${bars}</div>
   </section>
   <section class="panel stack">
     <div class="row"><div class="grow"><h2>Shopping list</h2><span class="sub num">${done} of ${items.length} in the basket</span></div>
-      <label class="toggle"><input type="checkbox" id="hidePantry" data-bind="hidePantry" ${state.hidePantry ? "checked" : ""}>Hide pantry staples</label>
+      <label class="toggle"><input type="checkbox" id="hidePantry" data-bind="hidePantry" ${state.hidePantry ? "checked" : ""}>Hide cupboard staples</label>
       <button class="btn sm" data-act="copyList">Copy list</button>
       <button class="btn sm ghost" data-act="clearChecks">Uncheck all</button></div>
     <div class="aisles">${groups || '<p class="empty">Nothing to buy.</p>'}</div>
@@ -685,7 +689,7 @@ function conjurePanel(presetDay) {
     <div><h2>Conjure a recipe</h2><span class="sub">Claude writes a new recipe that follows your restrictions, styles, calories and budget.</span></div>
     <form class="cgrid" data-form="conjure">
       <label class="field">Meal<select id="cj-slot">${slotOpts}</select></label>
-      <label class="field">What sounds good?<input type="text" id="cj-text" placeholder="e.g. cozy one-pot with sweet potato, kid-friendly" maxlength="200"></label>
+      <label class="field">What sounds good?<input type="text" id="cj-text" placeholder="e.g. cosy one-pot with sweet potato, kid-friendly" maxlength="200"></label>
       <button class="btn primary" type="submit" ${conjuring ? "disabled" : ""}>${conjuring ? '<span class="spin"></span> Stirring…' : "✦ Conjure"}</button>
     </form>
     ${r ? `<div class="rcard" data-act="open" data-v="${esc(r.id)}"><div class="t"><span>${r.emoji}</span><span>${esc(r.name)}</span></div><span class="sub">${r.time} min · ${r.kcal} kcal · ${money(r.cost)}/serving</span><div class="meta">${tagChips(r, 5)}</div><span class="sub">Saved to your recipes. Open it to add it to a day.</span></div>` : ""}
@@ -716,7 +720,7 @@ function viewSetup() {
       ${openCalc === m.id ? calcForm(m.id) : ""}
     </div>`).join("");
   const toggles = (list, key) => list.map(([v, l]) => `<label class="toggle"><input type="checkbox" id="${key}-${v}" data-list="${key}" value="${v}" ${state[key].includes(v) ? "checked" : ""}>${l}</label>`).join("");
-  const stores = allStores().map(s => `<div class="store"><input type="checkbox" id="st-${s.id}" data-store="${s.id}" ${state.storesOn.includes(s.id) ? "checked" : ""}><label for="st-${s.id}">${esc(s.name)}</label><input type="number" id="si-${s.id}" data-storeidx="${s.id}" min="0.5" max="2" step="0.01" value="${(+s.idx).toFixed(2)}" title="Price index: 1.00 is the national average" aria-label="${esc(s.name)} price index"></div>`).join("");
+  const stores = allStores().map(s => `<div class="store"><input type="checkbox" id="st-${s.id}" data-store="${s.id}" ${state.storesOn.includes(s.id) ? "checked" : ""}><label for="st-${s.id}">${esc(s.name)}</label><input type="number" id="si-${s.id}" data-storeidx="${s.id}" min="0.5" max="2" step="0.01" value="${(+s.idx).toFixed(2)}" title="Price index: 1.00 is an average UK supermarket" aria-label="${esc(s.name)} price index"></div>`).join("");
   return `<div class="setup">
   <section class="panel stack">
     <div><h2>Household</h2><span class="sub">Everyone eats the same meals; portions scale to each person's calories.</span></div>
@@ -731,10 +735,10 @@ function viewSetup() {
   </section>
   <section class="panel stack">
     <div><h2>Budget & stores</h2><span class="sub">The planner trims expensive days and compares your stores.</span></div>
-    <label class="field">Weekly grocery budget (USD)<input type="number" id="budget" data-bind="budget" min="20" step="5" value="${state.budget}"></label>
+    <label class="field">Weekly food shop budget (£)<input type="number" id="budget" data-bind="budget" min="20" step="5" value="${state.budget}"></label>
     <div class="row"><span class="eyebrow grow">Where you shop</span><span class="sub">Price index</span></div>
     <div class="stores">${stores}</div>
-    <form class="row" data-form="addStore"><input type="text" id="ns-name" placeholder="Add another store" style="flex:1 1 140px"><input type="number" id="ns-idx" step="0.01" min="0.5" max="2" value="1.00" style="width:84px" aria-label="Price index"><button class="btn sm" type="submit">Add</button></form>
+    <form class="row" data-form="addStore"><input type="text" id="ns-name" placeholder="Add another shop" style="flex:1 1 140px"><input type="number" id="ns-idx" step="0.01" min="0.5" max="2" value="1.00" style="width:84px" aria-label="Price index"><button class="btn sm" type="submit">Add</button></form>
   </section>
   <section class="panel stack">
     <div><h2>Plan</h2><span class="sub">One card per day, like a countdown calendar.</span></div>
@@ -751,17 +755,16 @@ function calcForm(id) {
   return `<form class="calc" data-form="calc" data-v="${id}">
     <label class="field">Sex<select id="c-sex"><option value="f">Female</option><option value="m">Male</option></select></label>
     <label class="field">Age<input type="number" id="c-age" min="2" max="100" value="35"></label>
-    <label class="field">Weight (lb)<input type="number" id="c-wt" min="20" max="600" value="160"></label>
-    <label class="field">Height (in)<input type="number" id="c-ht" min="30" max="90" value="67"></label>
+    <label class="field">Weight (kg)<input type="number" id="c-wt" min="10" max="300" value="75"></label>
+    <label class="field">Height (cm)<input type="number" id="c-ht" min="70" max="230" value="170"></label>
     <label class="field">Activity<select id="c-act"><option value="1.2">Mostly sitting</option><option value="1.375" selected>Light exercise</option><option value="1.55">Active 3–5 days</option><option value="1.725">Very active</option></select></label>
-    <label class="field">Goal<select id="c-goal"><option value="-500">Lose ~1 lb/week</option><option value="0" selected>Maintain</option><option value="300">Gain muscle</option></select></label>
+    <label class="field">Goal<select id="c-goal"><option value="-500">Lose ~0.5 kg a week</option><option value="0" selected>Maintain</option><option value="300">Gain muscle</option></select></label>
     <button class="btn primary sm" type="submit">Use this</button>
-    <span class="sub" style="grid-column:1/-1">Mifflin-St Jeor estimate for adults; USDA ranges for kids under 18. A doctor or dietitian can fine-tune it.</span>
+    <span class="sub" style="grid-column:1/-1">Mifflin-St Jeor estimate for adults; rough NHS/SACN ranges for under-18s. Your GP or a dietitian can fine-tune it.</span>
   </form>`;
 }
-function calcKcal(sex, age, lb, inch, act, goal) {
+function calcKcal(sex, age, kg, cm, act, goal) {
   if (age < 18) { const t = age < 4 ? 1100 : age < 9 ? 1500 : age < 14 ? (sex === "m" ? 2000 : 1800) : (sex === "m" ? 2600 : 2000); return Math.round((t * act / 1.375) / 50) * 50; }
-  const kg = lb * .4536, cm = inch * 2.54;
   const bmr = 10 * kg + 6.25 * cm - 5 * age + (sex === "m" ? 5 : -161);
   return Math.round((bmr * act + goal) / 50) * 50;
 }
@@ -804,18 +807,18 @@ Strict dietary restrictions (must be followed exactly): ${restr}.
 Preferred styles: ${styles}.
 Never use these ingredients: ${state.avoid || "none"}.
 The cook asked for: "${text || "surprise me"}".
-Aim for about ${target} kcal per serving and at most $${maxCost} per serving at typical US grocery prices. Use common supermarket ingredients.
+Aim for about ${target} kcal per serving and at most £${maxCost} per serving at typical UK supermarket prices (Tesco, Sainsbury's, Aldi). Use ingredients any UK supermarket stocks, British names (courgette, coriander, mince, tinned, plain flour), metric amounts, and oven temperatures in °C with the fan temperature in brackets.
 Reply with JSON only, no prose, in exactly this shape:
-{"name":"string, max 40 chars","emoji":"one food emoji","time":minutes as integer,"kcal":integer per serving,"protein":grams integer,"carbs":grams integer,"fat":grams integer,"cost":USD per serving as number,
+{"name":"string, max 40 chars","emoji":"one food emoji","time":minutes as integer,"kcal":integer per serving,"protein":grams integer,"carbs":grams integer,"fat":grams integer,"cost":GBP per serving as number,
 "tags":["any that truly apply from: vegan, vegetarian, pescatarian, gf, df, keto, healthy, mediterranean, highprotein, budget, comfort, mexican, asian, halloween"],
-"ingredients":[{"name":"lowercase grocery item","qty":number for ONE serving,"unit":"each|cup|tbsp|tsp|oz|lb|can|slice|clove|head|bunch|stalk","aisle":"Produce|Meat & Seafood|Dairy & Refrigerated|Bakery & Tortillas|Canned & Dry Goods|Frozen|Nuts & Snacks|Pantry Staples & Spices"}],
+"ingredients":[{"name":"lowercase grocery item","qty":number for ONE serving,"unit":"g|ml|each|tbsp|tsp|tin|slice|clove|bunch|stick|rasher","aisle":"Fruit & Veg|Meat & Fish|Dairy, Eggs & Chilled|Bakery|Tins, Jars & Dry Goods|Frozen|Nuts, Seeds & Snacks|Cupboard Staples & Spices"}],
 "steps":["3 to 6 short imperative steps"]}`;
   try {
     const j = await sampler.json(prompt, { modelTier: "default" });
     const aisleCode = Object.fromEntries(Object.entries(AISLES).map(([c, n]) => [n.toLowerCase(), c]));
     const okTags = new Set([...RESTRICT, ...STYLES].map(x => x[0]));
     const num = (v, d) => (Number.isFinite(+v) && +v > 0 ? +v : d);
-    const ing = (Array.isArray(j.ingredients) ? j.ingredients : []).slice(0, 20).map(i => [String(i.name || "ingredient").slice(0, 50), num(i.qty, 1), COUNT.concat(["cup", "tbsp", "tsp", "oz", "lb"]).includes(i.unit) ? i.unit : "each", aisleCode[String(i.aisle || "").toLowerCase()] || "C"]);
+    const ing = (Array.isArray(j.ingredients) ? j.ingredients : []).slice(0, 20).map(i => [String(i.name || "ingredient").slice(0, 50), num(i.qty, 1), COUNT.concat(["g", "ml", "tbsp", "tsp"]).includes(i.unit) ? i.unit : "each", aisleCode[String(i.aisle || "").toLowerCase()] || "C"]);
     if (!j.name || !ing.length) throw { message: "The recipe came back incomplete. Try again." };
     const tags = [...new Set([...(Array.isArray(j.tags) ? j.tags : []).filter(t => okTags.has(t) && t !== "quick"), ...state.restrict, "custom"])];
     const r = { id: "ai_" + Date.now().toString(36), name: String(j.name).slice(0, 60), emoji: [...String(j.emoji || "🍲")].slice(0, 2).join(""), meals: slot[0], tags,
