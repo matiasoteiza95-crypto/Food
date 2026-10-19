@@ -1,0 +1,957 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Cauldron">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#140f1c">
+<meta name="description" content="Daily meal planner: per-person calories, a weekly budget, UK supermarket comparison and a shopping list.">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" type="image/png" href="icon-192.png">
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style>
+</head>
+<body>
+<title>Cauldron Meal Planner</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=Creepster&display=swap">
+<style>
+/* Layout: a night-time pumpkin patch. Sticky header, tab rail, then one working view.
+   The daily view is a row of "door" tiles (one per day) above a lantern-lit day card. */
+:root {
+  --bg: #140f1c;
+  --surface: #1e1729;
+  --surface-2: #2a2037;
+  --line: #3b2f4b;
+  --fg: #f1eaf7;
+  --muted: #b3a5c5;
+  --pumpkin: #ff8a2a;
+  --pumpkin-ink: #1d0f04;
+  --pumpkin-soft: rgba(255, 138, 42, .14);
+  --candle: #ffd36b;
+  --moss: #7fd18b;
+  --blood: #ff7070;
+  --violet: #b48cff;
+  --violet-soft: rgba(180, 140, 255, .14);
+  --glow: radial-gradient(1200px 500px at 85% -10%, rgba(255,138,42,.16), transparent 60%), radial-gradient(900px 500px at -10% 10%, rgba(180,140,255,.12), transparent 60%);
+  --shadow: 0 10px 30px rgba(0,0,0,.35);
+  --display: "Creepster", "Impact", "Haettenschweiler", fantasy;
+  --body: "Bricolage Grotesque", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  color-scheme: dark;
+}
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) {
+    --bg: #f6f1f8; --surface: #ffffff; --surface-2: #f0e8f5; --line: #e0d3ea; --fg: #261a32; --muted: #6c5d7e;
+    --pumpkin: #c9560a; --pumpkin-ink: #ffffff; --pumpkin-soft: rgba(201, 86, 10, .10); --candle: #9a6a06;
+    --moss: #2c8442; --blood: #c23a3a; --violet: #6f45c7; --violet-soft: rgba(111, 69, 199, .10);
+    --glow: radial-gradient(1200px 500px at 85% -10%, rgba(255,138,42,.12), transparent 60%);
+    --shadow: 0 8px 24px rgba(60, 30, 80, .10);
+    color-scheme: light;
+  }
+}
+:root[data-theme="light"] {
+  --bg: #f6f1f8; --surface: #ffffff; --surface-2: #f0e8f5; --line: #e0d3ea; --fg: #261a32; --muted: #6c5d7e;
+  --pumpkin: #c9560a; --pumpkin-ink: #ffffff; --pumpkin-soft: rgba(201, 86, 10, .10); --candle: #9a6a06;
+  --moss: #2c8442; --blood: #c23a3a; --violet: #6f45c7; --violet-soft: rgba(111, 69, 199, .10);
+  --glow: radial-gradient(1200px 500px at 85% -10%, rgba(255,138,42,.12), transparent 60%);
+  --shadow: 0 8px 24px rgba(60, 30, 80, .10);
+  color-scheme: light;
+}
+
+* { box-sizing: border-box; }
+body {
+  background: var(--glow), var(--bg);
+  background-attachment: fixed;
+  color: var(--fg);
+  font-family: var(--body);
+  font-size: 15px;
+  line-height: 1.5;
+  min-height: 100%;
+}
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--bg); }
+button, input, select, textarea { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--pumpkin); outline-offset: 2px; }
+h1, h2, h3 { text-wrap: balance; margin: 0; line-height: 1.15; }
+.wrap { max-width: 1080px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+
+/* header */
+.top { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: color-mix(in srgb, var(--bg) 88%, transparent); backdrop-filter: blur(10px); border-bottom: 1px solid var(--line); }
+.top .wrap { display: flex; align-items: center; gap: 12px; padding-block: 10px; flex-wrap: wrap; }
+.brand { display: flex; align-items: baseline; gap: 10px; margin-right: auto; }
+.brand b { font-family: var(--display); font-weight: 400; font-size: 30px; color: var(--pumpkin); letter-spacing: .02em; line-height: 1; }
+.brand span { color: var(--muted); font-size: 13px; }
+.pill { display: inline-flex; align-items: center; gap: 6px; padding: 5px 11px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface); font-size: 13px; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.pill.ok { border-color: color-mix(in srgb, var(--moss) 50%, var(--line)); }
+.pill.over { border-color: var(--blood); color: var(--blood); }
+.dot { width: 8px; height: 8px; border-radius: 50%; background: var(--moss); display: inline-block; }
+.dot.warn { background: var(--candle); } .dot.bad { background: var(--blood); }
+
+.tabs { display: flex; gap: 4px; overflow-x: auto; padding-block: 0 8px; scrollbar-width: none; }
+.tabs::-webkit-scrollbar { display: none; }
+.tab { border: 0; background: transparent; padding: 8px 14px; border-radius: 10px; color: var(--muted); font-weight: 600; cursor: pointer; white-space: nowrap; }
+.tab:hover { color: var(--fg); background: var(--surface); }
+.tab[aria-selected="true"] { color: var(--pumpkin-ink); background: var(--pumpkin); }
+
+main { padding-block: 20px 80px; display: grid; gap: 20px; }
+
+/* generic */
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 18px; }
+.panel h2 { font-size: 20px; font-weight: 750; }
+.sub { color: var(--muted); font-size: 13px; }
+.eyebrow { text-transform: uppercase; letter-spacing: .12em; font-size: 11px; font-weight: 700; color: var(--muted); }
+.row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.grow { flex: 1 1 auto; min-width: 0; }
+.btn { border: 1px solid var(--line); background: var(--surface-2); padding: 8px 14px; border-radius: 10px; cursor: pointer; font-weight: 600; font-size: 14px; display: inline-flex; align-items: center; gap: 6px; }
+.btn:hover { border-color: var(--pumpkin); }
+.btn.primary { background: var(--pumpkin); color: var(--pumpkin-ink); border-color: var(--pumpkin); }
+.btn.primary:hover { filter: brightness(1.08); }
+.btn.ghost { background: transparent; }
+.btn.sm { padding: 5px 10px; font-size: 13px; border-radius: 8px; }
+.btn[disabled] { opacity: .5; cursor: progress; }
+.btn.on { border-color: var(--violet); color: var(--violet); background: var(--violet-soft); }
+.chip { display: inline-flex; align-items: center; padding: 2px 8px; border-radius: 999px; font-size: 12px; background: var(--surface-2); color: var(--muted); border: 1px solid var(--line); white-space: nowrap; }
+.chip.spooky { color: var(--pumpkin); border-color: color-mix(in srgb, var(--pumpkin) 40%, var(--line)); background: var(--pumpkin-soft); }
+.chip.ai { color: var(--violet); border-color: color-mix(in srgb, var(--violet) 40%, var(--line)); background: var(--violet-soft); }
+.toggle { display: inline-flex; align-items: center; gap: 8px; padding: 7px 12px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface-2); cursor: pointer; font-size: 14px; user-select: none; }
+.toggle input { accent-color: var(--pumpkin); margin: 0; }
+.toggle:has(input:checked) { border-color: var(--pumpkin); background: var(--pumpkin-soft); }
+label.field { display: grid; gap: 4px; font-size: 13px; color: var(--muted); }
+input[type=text], input[type=number], input[type=date], input[type=search], select, textarea {
+  background: var(--bg); border: 1px solid var(--line); border-radius: 10px; padding: 8px 10px; color: var(--fg); min-width: 0; width: 100%;
+}
+textarea { resize: vertical; min-height: 64px; }
+.num { font-variant-numeric: tabular-nums; }
+.banner { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; padding: 12px 16px; border-radius: 12px; border: 1px dashed var(--pumpkin); background: var(--pumpkin-soft); font-size: 14px; }
+.banner p { margin: 0; flex: 1 1 260px; }
+
+/* day doors */
+.doors { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(74px, 1fr); gap: 8px; overflow-x: auto; padding-bottom: 4px; }
+.door { border: 1px solid var(--line); background: var(--surface); border-radius: 14px 14px 10px 10px; padding: 8px 6px 10px; cursor: pointer; display: grid; justify-items: center; gap: 2px; position: relative; }
+.door .n { font-family: var(--display); font-size: 30px; line-height: 1; color: var(--muted); }
+.door .wd { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; }
+.door .dt { font-size: 11px; color: var(--muted); }
+.door .dot { position: absolute; top: 8px; right: 8px; width: 7px; height: 7px; }
+.door.today { border-color: var(--candle); }
+.door[aria-current="true"] { background: var(--pumpkin); border-color: var(--pumpkin); color: var(--pumpkin-ink); box-shadow: 0 6px 22px var(--pumpkin-soft); }
+.door[aria-current="true"] .n, .door[aria-current="true"] .dt { color: var(--pumpkin-ink); }
+
+/* day card */
+.daycard { display: grid; grid-template-columns: auto 1fr; gap: 18px 24px; align-items: center; }
+.bignum { font-family: var(--display); font-size: clamp(64px, 14vw, 112px); line-height: .85; color: var(--pumpkin); text-shadow: 0 0 30px var(--pumpkin-soft); }
+.daycard h2 { font-size: clamp(22px, 4vw, 30px); font-weight: 800; }
+.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; grid-column: 1 / -1; }
+.stat { background: var(--surface-2); border-radius: 12px; padding: 10px 12px; }
+.stat b { display: block; font-size: 20px; font-variant-numeric: tabular-nums; }
+.meter { height: 6px; border-radius: 6px; background: var(--line); overflow: hidden; margin-top: 6px; }
+.meter i { display: block; height: 100%; background: var(--moss); border-radius: 6px; }
+.meter i.warn { background: var(--candle); } .meter i.bad { background: var(--blood); }
+.people { display: flex; flex-wrap: wrap; gap: 8px; grid-column: 1 / -1; }
+.person { font-size: 13px; padding: 6px 10px; border-radius: 10px; background: var(--surface-2); }
+.person b { font-weight: 700; }
+
+.meals { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; }
+.meal { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 14px; display: grid; gap: 10px; align-content: start; min-width: 0; }
+.meal.locked { border-color: var(--violet); }
+.meal .head { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.meal .emoji { font-size: 34px; line-height: 1; }
+.meal h3 { font-size: 17px; font-weight: 700; cursor: pointer; }
+.meal h3:hover { color: var(--pumpkin); }
+.meal .meta { display: flex; gap: 6px; flex-wrap: wrap; }
+.meal .portions { font-size: 12px; color: var(--muted); display: grid; gap: 2px; border-top: 1px dashed var(--line); padding-top: 8px; }
+.meal .portions span { display: flex; justify-content: space-between; gap: 8px; font-variant-numeric: tabular-nums; }
+.meal .acts { display: flex; gap: 6px; flex-wrap: wrap; }
+.empty { color: var(--muted); font-size: 14px; }
+
+/* week table */
+.tablewrap { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; min-width: 640px; font-size: 14px; }
+th, td { text-align: left; padding: 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font-size: 11px; text-transform: uppercase; letter-spacing: .1em; color: var(--muted); }
+td.daycell { white-space: nowrap; font-weight: 700; }
+td .m { cursor: pointer; } td .m:hover { color: var(--pumpkin); }
+tr.cur td { background: var(--pumpkin-soft); }
+
+/* groceries */
+.storebars { display: grid; gap: 10px; }
+.sb { display: grid; grid-template-columns: minmax(90px, 140px) 1fr auto; gap: 10px; align-items: center; font-size: 14px; }
+.sb .track { height: 14px; border-radius: 7px; background: var(--surface-2); position: relative; }
+.sb .track i { position: absolute; inset: 0 auto 0 0; border-radius: 7px; background: var(--violet); opacity: .75; }
+.sb.best .track i { background: var(--moss); opacity: 1; }
+.sb .track .budget { position: absolute; top: -4px; bottom: -4px; width: 2px; background: var(--candle); }
+.sb .amt { font-variant-numeric: tabular-nums; font-weight: 700; min-width: 70px; text-align: right; }
+.aisles { columns: 2 300px; column-gap: 20px; }
+.aisle { break-inside: avoid; margin-bottom: 16px; }
+.aisle h3 { font-size: 13px; text-transform: uppercase; letter-spacing: .1em; color: var(--pumpkin); margin-bottom: 6px; }
+.item { display: flex; align-items: center; gap: 10px; padding: 6px 0; border-bottom: 1px solid var(--line); font-size: 14px; cursor: pointer; }
+.item input { accent-color: var(--moss); width: 18px; height: 18px; margin: 0; flex: none; }
+.item .q { margin-left: auto; color: var(--muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.item.done .nm { text-decoration: line-through; color: var(--muted); }
+
+/* recipes */
+.rgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; }
+.rcard { text-align: left; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 12px; cursor: pointer; display: grid; gap: 6px; align-content: start; }
+.rcard:hover { border-color: var(--pumpkin); }
+.rcard .t { font-weight: 700; display: flex; gap: 8px; align-items: center; }
+.rcard .t span:first-child { font-size: 24px; }
+.rcard .meta { display: flex; gap: 6px; flex-wrap: wrap; }
+.rcard.dim { opacity: .55; }
+
+/* setup */
+.setup { display: grid; gap: 20px; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); align-items: start; }
+.member { display: grid; grid-template-columns: 1fr 120px auto; gap: 8px; align-items: end; padding: 10px 0; border-bottom: 1px solid var(--line); }
+.calc { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 8px; background: var(--surface-2); padding: 12px; border-radius: 12px; align-items: end; }
+.stores { display: grid; gap: 6px; }
+.store { display: grid; grid-template-columns: auto 1fr 84px; gap: 10px; align-items: center; font-size: 14px; }
+.store input[type=checkbox] { accent-color: var(--pumpkin); width: 18px; height: 18px; margin: 0; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.stack { display: grid; gap: 12px; }
+
+/* conjure */
+.conjure { border-color: color-mix(in srgb, var(--violet) 45%, var(--line)); background: linear-gradient(160deg, var(--violet-soft), transparent 60%), var(--surface); }
+.conjure h2 { color: var(--violet); }
+.cgrid { display: grid; grid-template-columns: 160px 1fr auto; gap: 10px; align-items: end; }
+.spin { display: inline-block; width: 14px; height: 14px; border: 2px solid currentColor; border-right-color: transparent; border-radius: 50%; animation: spin .8s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* modal */
+dialog { border: 1px solid var(--line); border-radius: 18px; background: var(--surface); color: var(--fg); padding: 0; width: min(640px, calc(100vw - 24px)); max-height: calc(100dvh - 40px); box-shadow: var(--shadow); }
+dialog::backdrop { background: rgba(10, 5, 15, .6); backdrop-filter: blur(3px); }
+.mbody { padding: 20px; display: grid; gap: 14px; overflow-y: auto; max-height: calc(100dvh - 42px); }
+.mhead { display: flex; gap: 12px; align-items: flex-start; }
+.mhead .e { font-size: 44px; line-height: 1; }
+.mhead h2 { font-size: 22px; font-weight: 800; }
+.macros { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+.macros div { background: var(--surface-2); border-radius: 10px; padding: 8px; text-align: center; font-size: 12px; color: var(--muted); }
+.macros b { display: block; font-size: 17px; color: var(--fg); font-variant-numeric: tabular-nums; }
+.ing { list-style: none; padding: 0; margin: 0; display: grid; gap: 4px; font-size: 14px; }
+.ing li { display: flex; justify-content: space-between; gap: 10px; border-bottom: 1px dotted var(--line); padding: 3px 0; }
+.ing li span:last-child { color: var(--muted); white-space: nowrap; font-variant-numeric: tabular-nums; }
+ol.steps { margin: 0; padding-left: 20px; display: grid; gap: 6px; font-size: 14px; }
+
+#toast { position: fixed; left: 50%; bottom: calc(20px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%) translateY(20px); opacity: 0; background: var(--fg); color: var(--bg); padding: 10px 16px; border-radius: 10px; font-size: 14px; font-weight: 600; transition: .25s; pointer-events: none; z-index: 20; max-width: calc(100vw - 32px); }
+#toast.show { opacity: 1; transform: translateX(-50%); }
+
+@media (max-width: 560px) {
+  .daycard { gap: 14px 16px; }
+  .bignum { font-size: 64px; }
+  .stats { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+  .stat { padding: 8px; }
+  .stat b { font-size: 16px; }
+  .cgrid { grid-template-columns: 1fr; }
+  .member { grid-template-columns: 1fr 100px; }
+  .member .rm { grid-column: 1 / -1; justify-self: start; }
+  .sb { grid-template-columns: 90px 1fr auto; }
+  .macros { grid-template-columns: repeat(2, 1fr); }
+  .brand span { display: none; }
+}
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+</style>
+
+<header class="top">
+  <div class="wrap">
+    <div class="brand"><b>Cauldron</b><span>Daily meal planner</span></div>
+    <span class="pill" id="countdown" hidden></span>
+    <span class="pill" id="budgetPill"></span>
+    <span class="pill" id="syncPill" title="Where your plan is saved"><span class="dot warn"></span>This device</span>
+  </div>
+  <div class="wrap">
+    <nav class="tabs" role="tablist" aria-label="Sections">
+      <button class="tab" role="tab" data-tab="today" id="tab-today">Daily</button>
+      <button class="tab" role="tab" data-tab="week" id="tab-week">Week</button>
+      <button class="tab" role="tab" data-tab="groceries" id="tab-groceries">Groceries</button>
+      <button class="tab" role="tab" data-tab="recipes" id="tab-recipes">Recipes</button>
+      <button class="tab" role="tab" data-tab="setup" id="tab-setup">Household</button>
+    </nav>
+  </div>
+</header>
+<main class="wrap" id="main"></main>
+<dialog id="modal"><div class="mbody" id="modalBody"></div></dialog>
+<div id="toast" role="status" aria-live="polite"></div>
+
+<script>
+"use strict";
+/* ---------- recipe library ----------
+   [id, name, emoji, meals(b/l/d/s), tags, kcal, protein, carbs, fat, cost/serving GBP, minutes, ingredients per serving, steps]
+   ingredient: [name, qty, unit, aisle]  aisle: P produce, M meat & seafood, D dairy & refrigerated, B bakery & grains,
+   C tins & dry goods, F frozen, S cupboard staples & spices, N nuts & snacks */
+const AISLES = { P: "Fruit & Veg", M: "Meat & Fish", D: "Dairy, Eggs & Chilled", B: "Bakery", C: "Tins, Jars & Dry Goods", F: "Frozen", N: "Nuts, Seeds & Snacks", S: "Cupboard Staples & Spices" };
+const RAW = [
+ ["b1","Overnight Oats with Berries","🥣","b","vegan vegetarian df budget healthy",380,13,58,11,0.65,5,[["porridge oats",40,"g","C"],["soya milk",180,"ml","D"],["chia seeds",1,"tbsp","N"],["frozen mixed berries",75,"g","F"],["maple syrup",1,"tsp","S"]],["Stir oats, soya milk and chia together in a jar.","Top with berries and a drizzle of maple.","Chill overnight. Eat cold or microwave for 60 seconds."]],
+ ["b2","Greek Yoghurt Pot","🍯","bs","vegetarian gf mediterranean healthy highprotein",330,24,40,9,1.10,5,[["0% Greek-style yoghurt",200,"g","D"],["fresh berries",75,"g","P"],["walnuts",15,"g","N"],["honey",1,"tsp","S"]],["Spoon yoghurt into a bowl or glass.","Layer with berries and chopped walnuts.","Finish with honey."]],
+ ["b3","Veggie Scrambled Eggs on Toast","🍳","b","vegetarian df highprotein budget",410,24,30,20,0.95,15,[["free-range eggs",3,"each","D"],["baby spinach",30,"g","P"],["pepper",.5,"each","P"],["wholemeal bread",1,"slice","B"],["olive oil",1,"tsp","S"]],["Soften diced pepper in oil for 3 minutes.","Add spinach until wilted, then the beaten eggs.","Stir gently until just set. Serve on toast."]],
+ ["b4","Smashed Avocado & Egg on Toast","🥑","b","vegetarian df healthy",430,17,34,26,1.30,10,[["wholemeal bread",2,"slice","B"],["avocado",.5,"each","P"],["free-range eggs",1,"each","D"],["lemon",.25,"each","P"],["chilli flakes",.25,"tsp","S"]],["Toast the bread.","Smash avocado with lemon and salt; spread on toast.","Top with a poached or fried egg and chilli flakes."]],
+ ["b5","Turmeric Tofu Scramble","🌼","b","vegan vegetarian gf df highprotein healthy",340,24,14,21,1.05,15,[["firm tofu",200,"g","D"],["baby spinach",30,"g","P"],["cherry tomatoes",80,"g","P"],["corn tortillas",2,"each","B"],["ground turmeric",.25,"tsp","S"],["olive oil",1,"tsp","S"]],["Crumble tofu into a hot oiled pan.","Season with turmeric, salt and pepper; cook 5 minutes.","Fold in spinach and halved tomatoes. Serve in warm tortillas."]],
+ ["b6","Shakshuka","🍅","bd","vegetarian gf df mediterranean healthy",360,19,22,22,0.95,25,[["chopped tomatoes (400g tin)",.5,"tin","C"],["free-range eggs",2,"each","D"],["onion",.25,"each","P"],["pepper",.5,"each","P"],["garlic",1,"clove","P"],["ground cumin",.5,"tsp","S"],["smoked paprika",.5,"tsp","S"],["olive oil",1,"tbsp","S"]],["Soften onion, pepper and garlic in oil.","Add spices and tomatoes; simmer 10 minutes.","Make wells, crack in the eggs, cover and cook until the whites set."]],
+ ["b7","Peanut Butter Banana Smoothie","🍌","bs","vegan vegetarian gf df quick budget",420,18,52,17,0.75,5,[["banana",1,"each","P"],["soya milk",250,"ml","D"],["peanut butter",2,"tbsp","C"],["milled flaxseed",1,"tbsp","N"]],["Add everything to a blender with a few ice cubes.","Blend until smooth."]],
+ ["b8","Bacon & Spinach Egg Muffins","🧁","b","gf df keto highprotein",300,21,3,23,1.15,30,[["free-range eggs",2,"each","D"],["smoked back bacon",1.5,"rasher","M"],["baby spinach",15,"g","P"],["pepper",.25,"each","P"]],["Heat the oven to 190°C (170°C fan) and grease a muffin tin.","Whisk eggs with chopped cooked bacon, spinach and pepper.","Pour into the tin and bake 18–20 minutes. They keep 4 days in the fridge."]],
+ ["b9","Spiced Pumpkin Pancakes","🎃","b","vegetarian comfort budget halloween",450,12,68,14,0.65,25,[["plain flour",60,"g","C"],["pumpkin purée (425g tin)",.25,"tin","C"],["free-range eggs",.5,"each","D"],["semi-skimmed milk",125,"ml","D"],["butter",5,"g","D"],["mixed spice",.5,"tsp","S"],["baking powder",.5,"tsp","S"],["maple syrup",1,"tbsp","S"]],["Whisk flour, baking powder and mixed spice.","Stir in pumpkin, egg and milk until just combined.","Cook small ladlefuls in a buttered frying pan. Serve with maple."]],
+ ["b10","Coconut Chia Pudding","🥥","bs","vegan vegetarian gf df keto healthy",290,8,12,24,0.95,5,[["chia seeds",3,"tbsp","N"],["light coconut milk",120,"ml","C"],["raspberries",30,"g","P"],["vanilla extract",.25,"tsp","S"]],["Whisk chia, coconut milk and vanilla.","Rest 10 minutes, whisk again, then chill overnight.","Top with raspberries."]],
+
+ ["l1","Mediterranean Chickpea Salad","🥗","l","vegan vegetarian gf df mediterranean healthy budget",450,16,52,21,1.20,15,[["chickpeas (400g tin)",.5,"tin","C"],["cucumber",.5,"each","P"],["cherry tomatoes",110,"g","P"],["red onion",.125,"each","P"],["kalamata olives",30,"g","C"],["flat-leaf parsley",.25,"bunch","P"],["lemon",.5,"each","P"],["olive oil",1,"tbsp","S"]],["Rinse chickpeas. Chop cucumber, tomatoes, onion and parsley.","Toss with olives, lemon juice, olive oil, salt and pepper.","Keeps 3 days in the fridge, so make a double batch for lunchboxes."]],
+ ["l2","Turkey & Houmous Wrap","🌯","l","df highprotein",480,32,44,18,1.75,10,[["wholemeal wraps",1,"each","B"],["sliced turkey breast",110,"g","M"],["houmous",45,"g","D"],["baby spinach",30,"g","P"],["cucumber",.25,"each","P"]],["Spread houmous over the wrap.","Layer turkey, spinach and sliced cucumber.","Roll tightly and halve."]],
+ ["l3","Lemony Red Lentil Soup","🍲","ld","vegan vegetarian gf df mediterranean healthy budget comfort",390,20,58,8,0.65,40,[["red split lentils",100,"g","C"],["carrot",1,"each","P"],["celery",1,"stick","P"],["onion",.25,"each","P"],["vegetable stock cube (gluten-free)",.5,"each","S"],["lemon",.25,"each","P"],["ground cumin",.5,"tsp","S"],["olive oil",1,"tsp","S"]],["Soften onion, carrot and celery in oil for 5 minutes.","Add lentils, cumin, the crumbled stock cube and 375ml water per serving; simmer 20 minutes.","Blend partly for body, then finish with lemon juice."]],
+ ["l4","Chicken Caesar Salad","🥬","l","gf keto highprotein",470,40,8,31,2.20,20,[["chicken breast fillets",150,"g","M"],["romaine lettuce",.5,"each","P"],["parmesan",15,"g","D"],["Caesar dressing",2,"tbsp","C"],["lemon",.25,"each","P"]],["Season and pan-fry the chicken 6 minutes each side; rest and slice.","Chop the lettuce and toss with dressing and lemon.","Top with chicken and shaved parmesan. Skipping croutons keeps it gluten-free."]],
+ ["l5","Tuna & Cannellini Bean Salad","🐟","l","pescatarian gf df mediterranean highprotein budget",420,34,32,16,1.45,10,[["tuna in spring water (145g tin)",1,"tin","C"],["cannellini beans (400g tin)",.5,"tin","C"],["rocket",40,"g","P"],["red onion",.125,"each","P"],["lemon",.5,"each","P"],["olive oil",1,"tbsp","S"]],["Drain the tuna and beans.","Toss with thinly sliced onion, lemon juice and oil.","Serve over rocket."]],
+ ["l6","Black Bean Quinoa Bowl","🌮","ld","vegan vegetarian gf df healthy budget mexican",520,19,80,14,1.15,25,[["quinoa",60,"g","C"],["black beans (400g tin)",.5,"tin","C"],["frozen sweetcorn",50,"g","F"],["tomato salsa",60,"g","C"],["avocado",.25,"each","P"],["lime",.5,"each","P"]],["Cook quinoa (1 part to 2 parts water, 15 minutes).","Warm the beans and sweetcorn together.","Build bowls with salsa, avocado and a squeeze of lime."]],
+ ["l7","Falafel Pitta with Tzatziki","🧆","l","vegetarian mediterranean",560,20,70,22,1.50,25,[["falafel",4,"each","D"],["wholemeal pitta",1,"each","B"],["tzatziki",45,"g","D"],["cucumber",.25,"each","P"],["tomato",.5,"each","P"],["romaine lettuce",.25,"each","P"]],["Warm the falafel per the pack.","Toast the pitta and split it open.","Stuff with lettuce, tomato, cucumber, falafel and tzatziki."]],
+ ["l8","Peanut Soba Noodle Salad","🥜","l","vegan vegetarian df asian",510,18,68,19,1.30,20,[["soba noodles",85,"g","C"],["frozen edamame beans",75,"g","F"],["carrot",1,"each","P"],["red cabbage",.125,"each","P"],["peanut butter",1.5,"tbsp","C"],["soy sauce",1,"tbsp","S"],["lime",.5,"each","P"]],["Cook soba with edamame for the last 2 minutes; rinse under cold water.","Whisk peanut butter, soy, lime and a splash of water.","Toss with grated carrot and shredded cabbage."]],
+ ["l9","Egg Mayo Lettuce Cups","🥚","l","vegetarian gf df keto budget",360,20,4,29,0.80,20,[["free-range eggs",3,"each","D"],["mayonnaise",1.5,"tbsp","C"],["Dijon mustard",1,"tsp","C"],["little gem lettuce",1,"each","P"],["paprika",.25,"tsp","S"]],["Hard-boil the eggs for 10 minutes; cool in cold water.","Chop and mix with mayo, mustard, salt and pepper.","Spoon into lettuce leaves and dust with paprika."]],
+ ["l10","Butternut Soup & Cheese Toastie","🎃","l","vegetarian comfort halloween",590,20,66,28,1.35,35,[["butternut squash",.25,"each","P"],["vegetable stock cube",.3,"each","S"],["onion",.25,"each","P"],["sourdough bread",2,"slice","B"],["mature cheddar",40,"g","D"],["butter",10,"g","D"]],["Simmer cubed squash and onion with the stock cube and 250ml water per serving until soft, about 20 minutes; blend.","Butter the bread, fill with cheddar and fry until golden.","Cut into soldiers for dipping."]],
+ ["l11","Salmon Poke Bowl","🍣","ld","pescatarian df asian highprotein healthy",560,34,60,19,2.80,20,[["salmon fillets",1,"each","M"],["brown rice",60,"g","C"],["cucumber",.5,"each","P"],["frozen edamame beans",40,"g","F"],["avocado",.25,"each","P"],["soy sauce",1,"tbsp","S"],["sesame seeds",1,"tsp","S"]],["Cook the rice. Roast salmon at 200°C (180°C fan) for 12 minutes.","Flake the salmon and toss with soy sauce.","Build bowls with cucumber, edamame, avocado and sesame."]],
+
+ ["d1","Traybake Lemon & Herb Chicken","🍋","d","gf df mediterranean healthy highprotein",520,42,38,20,2.10,40,[["boneless chicken thighs",180,"g","M"],["baby potatoes",150,"g","P"],["broccoli",.33,"each","P"],["lemon",.5,"each","P"],["garlic",2,"clove","P"],["dried oregano",1,"tsp","S"],["olive oil",1,"tbsp","S"]],["Heat the oven to 220°C (200°C fan).","Toss chicken, halved potatoes and garlic with oil, oregano, lemon zest and salt; roast 20 minutes.","Add broccoli and roast 15 minutes more. Squeeze over the lemon."]],
+ ["d2","Baked Salmon, Quinoa & Asparagus","🐟","d","pescatarian gf df mediterranean healthy highprotein",560,38,40,26,3.40,30,[["salmon fillets",1,"each","M"],["quinoa",60,"g","C"],["asparagus",.33,"bunch","P"],["lemon",.5,"each","P"],["garlic",1,"clove","P"],["olive oil",1,"tsp","S"]],["Cook the quinoa.","Lay salmon and asparagus on a baking tray with oil, garlic and lemon slices.","Bake at 200°C (180°C fan) for 12–14 minutes."]],
+ ["d3","Turkey & Bean Chilli","🌶️","ld","gf df highprotein budget comfort mexican",480,36,42,16,1.60,45,[["turkey mince",150,"g","M"],["kidney beans (400g tin)",.5,"tin","C"],["chopped tomatoes (400g tin)",.5,"tin","C"],["onion",.25,"each","P"],["pepper",.5,"each","P"],["chilli powder",2,"tsp","S"]],["Brown the mince with onion and pepper.","Add chilli powder, tomatoes and beans.","Simmer 30 minutes. Even better the next day."]],
+ ["d4","Chickpea & Coconut Curry","🍛","d","vegan vegetarian gf df budget healthy asian",540,16,64,24,1.15,30,[["chickpeas (400g tin)",.5,"tin","C"],["light coconut milk",120,"ml","C"],["baby spinach",45,"g","P"],["chopped tomatoes (400g tin)",.25,"tin","C"],["onion",.25,"each","P"],["garlic",1,"clove","P"],["curry powder",2,"tsp","S"],["basmati rice",60,"g","C"]],["Cook the rice.","Soften onion and garlic, then add curry powder for 30 seconds.","Add tomatoes, coconut milk and chickpeas; simmer 15 minutes. Stir in spinach."]],
+ ["d5","Lentil Bolognese","🍝","d","vegan vegetarian df budget mediterranean comfort",580,24,96,9,0.95,40,[["wholewheat spaghetti",85,"g","C"],["dried green lentils",50,"g","C"],["chopped tomatoes (400g tin)",.5,"tin","C"],["carrot",.5,"each","P"],["onion",.25,"each","P"],["garlic",1,"clove","P"],["dried mixed herbs",1,"tsp","S"],["olive oil",1,"tsp","S"]],["Soften finely diced onion, carrot and garlic.","Add lentils, tomatoes, herbs and 125ml water per serving; simmer 25 minutes.","Toss with cooked spaghetti."]],
+ ["d6","Beef & Broccoli Stir-Fry","🥦","d","df asian highprotein comfort",610,36,62,22,2.50,25,[["beef frying steak",150,"g","M"],["broccoli",.33,"each","P"],["jasmine rice",60,"g","C"],["soy sauce",1.5,"tbsp","S"],["garlic",1,"clove","P"],["fresh ginger",7,"g","P"],["cornflour",1,"tsp","C"]],["Cook the rice. Slice the beef thinly against the grain and toss with cornflour.","Sear the beef in a very hot wok; set aside.","Stir-fry broccoli, garlic and ginger, then return the beef with soy sauce and a splash of water."]],
+ ["d7","Prawn Tacos with Lime Slaw","🌮","d","pescatarian gf df mexican highprotein",490,30,48,19,2.60,20,[["frozen king prawns",150,"g","F"],["corn tortillas",3,"each","B"],["red cabbage",.125,"each","P"],["lime",.5,"each","P"],["avocado",.25,"each","P"],["chilli powder",1,"tsp","S"]],["Toss defrosted prawns with chilli powder and salt; fry 2 minutes each side.","Shred the cabbage and toss with lime juice and salt.","Fill warm tortillas with prawns, slaw and avocado."]],
+ ["d8","Greek Chicken Souvlaki Bowls","🥙","d","gf mediterranean highprotein healthy",560,44,48,20,2.20,35,[["chicken breast fillets",150,"g","M"],["brown rice",60,"g","C"],["cucumber",.5,"each","P"],["cherry tomatoes",80,"g","P"],["tzatziki",45,"g","D"],["feta",15,"g","D"],["lemon",.5,"each","P"],["dried oregano",1,"tsp","S"]],["Marinate cubed chicken in lemon, oregano and salt for 15 minutes.","Griddle or pan-fry 8–10 minutes. Cook the rice.","Build bowls with cucumber, tomatoes, feta and tzatziki."]],
+ ["d9","Black Bean Stuffed Peppers","🫑","d","vegan vegetarian gf df budget mexican healthy",450,15,74,10,1.10,45,[["pepper",1.5,"each","P"],["black beans (400g tin)",.5,"tin","C"],["brown rice",45,"g","C"],["tomato salsa",60,"g","C"],["frozen sweetcorn",40,"g","F"],["ground cumin",.5,"tsp","S"]],["Cook the rice. Halve and deseed the peppers.","Mix rice, beans, sweetcorn, salsa and cumin; pack into the peppers.","Cover with foil and bake at 190°C (170°C fan) for 30 minutes."]],
+ ["d10","Pesto Courgetti with Chicken","🌿","d","gf keto highprotein",470,38,12,30,2.15,20,[["courgettes",2,"each","P"],["chicken breast fillets",150,"g","M"],["green pesto",2,"tbsp","C"],["cherry tomatoes",80,"g","P"],["parmesan",7,"g","D"]],["Spiralize the courgettes (or buy ready-made courgetti).","Fry sliced chicken until cooked through.","Toss courgetti in the pan for 2 minutes with pesto and tomatoes; top with parmesan."]],
+ ["d11","Garlic Steak & Cauliflower Mash","🥩","d","gf keto highprotein comfort",620,45,14,42,3.90,35,[["sirloin steak",180,"g","M"],["cauliflower",.5,"each","P"],["green beans",110,"g","P"],["butter",15,"g","D"],["garlic",2,"clove","P"]],["Steam the cauliflower until very soft; mash with half the butter and garlic.","Sear the steak 3–4 minutes each side, basting with the rest of the butter and garlic; rest 5 minutes.","Blister the green beans in the same pan."]],
+ ["d12","Tofu Veggie Stir-Fry","🥢","d","vegan vegetarian gf df asian healthy",470,24,52,18,1.30,25,[["firm tofu",200,"g","D"],["frozen stir-fry veg",150,"g","F"],["jasmine rice",60,"g","C"],["tamari",1.5,"tbsp","S"],["garlic",1,"clove","P"],["sesame oil",1,"tsp","S"]],["Cook the rice. Press and cube the tofu.","Brown the tofu in sesame oil; set aside.","Stir-fry the veg and garlic, then return the tofu with tamari."]],
+ ["d13","Jack-o'-Lantern Pumpkin Chilli","🎃","ld","vegan vegetarian gf df budget comfort healthy halloween",430,18,70,8,0.95,45,[["pumpkin purée (425g tin)",.25,"tin","C"],["black beans (400g tin)",.5,"tin","C"],["kidney beans (400g tin)",.25,"tin","C"],["chopped tomatoes (400g tin)",.5,"tin","C"],["onion",.25,"each","P"],["pepper",.5,"each","P"],["chilli powder",2,"tsp","S"],["ground cinnamon",.125,"tsp","S"]],["Soften the onion and pepper.","Add everything else plus 60ml water per serving.","Simmer 30 minutes. Serve in hollowed-out mini pumpkins for maximum spook."]],
+ ["d14","Mediterranean Baked Cod","🐠","d","pescatarian gf df mediterranean keto healthy highprotein",380,36,12,20,2.90,25,[["frozen cod fillets",180,"g","F"],["cherry tomatoes",110,"g","P"],["kalamata olives",30,"g","C"],["capers",1,"tsp","C"],["green beans",110,"g","P"],["garlic",1,"clove","P"],["olive oil",1,"tbsp","S"]],["Heat the oven to 200°C (180°C fan).","Nestle the cod among tomatoes, olives, capers, green beans and garlic; drizzle with oil.","Bake 15–18 minutes until the fish flakes."]],
+ ["d15","Witch's Hair Squash & Meatballs","🧙","d","gf df highprotein comfort healthy halloween",510,38,30,26,2.05,55,[["spaghetti squash (or butternut)",.5,"each","P"],["turkey mince",150,"g","M"],["chopped tomatoes (400g tin)",.5,"tin","C"],["free-range eggs",.25,"each","D"],["garlic",1,"clove","P"],["dried mixed herbs",1,"tsp","S"]],["Roast the halved squash cut-side down at 200°C (180°C fan) for 40 minutes.","Mix mince, egg, garlic and herbs; roll meatballs and simmer in the tomatoes for 20 minutes.","Fork the squash into witch's-hair strands and top with the meatballs."]],
+ ["d16","Sweet Potato & Black Bean Enchiladas","🍠","d","vegetarian gf mexican comfort",560,19,82,18,1.40,45,[["sweet potato",225,"g","P"],["black beans (400g tin)",.5,"tin","C"],["corn tortillas",3,"each","B"],["passata",120,"ml","C"],["grated mozzarella & cheddar",30,"g","D"],["ground cumin",.5,"tsp","S"],["chilli powder",.5,"tsp","S"]],["Roast or microwave diced sweet potato until tender; mash with the beans and cumin.","Roll the filling in warm tortillas and lay seam-down in a dish.","Mix passata with chilli powder, pour over, add cheese and bake at 190°C (170°C fan) for 20 minutes."]],
+
+ ["s1","Apple & Peanut Butter","🍎","s","vegan vegetarian gf df budget",260,7,30,16,0.45,2,[["apples",1,"each","P"],["peanut butter",1.5,"tbsp","C"]],["Slice the apple and dip."]],
+ ["s2","Houmous & Crunchy Veg","🥕","s","vegan vegetarian gf df mediterranean healthy",200,7,22,10,0.70,5,[["houmous",60,"g","D"],["carrot batons",85,"g","P"],["cucumber",.25,"each","P"]],["Cut the cucumber into sticks and serve with carrots and houmous."]],
+ ["s3","Cottage Cheese & Berries","🫐","s","vegetarian gf highprotein healthy",190,20,16,5,0.80,2,[["cottage cheese",170,"g","D"],["fresh berries",50,"g","P"]],["Top the cottage cheese with berries."]],
+ ["s4","Roasted Pumpkin Seeds","🎃","s","vegan vegetarian gf df keto budget halloween",180,9,5,15,0.35,20,[["pumpkin seeds",30,"g","N"],["smoked paprika",.25,"tsp","S"],["olive oil",.5,"tsp","S"]],["Toss seeds with oil, paprika and salt.","Roast at 160°C (140°C fan) for 12–15 minutes, shaking once.","Carving a jack-o'-lantern? Rinse and dry those seeds and use them instead."]],
+ ["s5","Boiled Eggs & Cherry Tomatoes","🥚","s","vegetarian gf df keto highprotein budget",170,13,4,10,0.45,12,[["free-range eggs",2,"each","D"],["cherry tomatoes",80,"g","P"]],["Boil the eggs for 10 minutes, cool, and season with salt and pepper."]],
+ ["s6","Fruit & Nut Mix","🥜","s","vegan vegetarian gf df",280,8,24,18,0.55,1,[["fruit & nut mix",40,"g","N"]],["Portion into small tubs for the week."]],
+ ["s7","Cheddar & Almonds","🧀","s","vegetarian gf keto",250,12,5,21,0.75,1,[["mature cheddar",30,"g","D"],["almonds",20,"g","N"]],["Cube the cheese and pair with almonds."]],
+ ["s8","Sea Salt Edamame","🫛","s","vegan vegetarian gf df highprotein healthy asian",190,17,14,8,0.60,6,[["frozen edamame beans",150,"g","F"]],["Microwave or boil for 4 minutes; sprinkle with sea salt flakes."]]
+];
+const toRecipe = a => ({ id: a[0], name: a[1], emoji: a[2], meals: a[3], tags: withQuick(a[4].split(" "), a[10]), kcal: a[5], protein: a[6], carbs: a[7], fat: a[8], cost: a[9], time: a[10], ing: a[11], steps: a[12] });
+function withQuick(tags, time) { return time <= 25 && !tags.includes("quick") ? tags.concat("quick") : tags; }
+const LIB = RAW.map(toRecipe);
+
+const RESTRICT = [["vegetarian","Vegetarian"],["vegan","Vegan"],["pescatarian","Pescatarian"],["gf","Gluten-free"],["df","Dairy-free"],["keto","Keto / low-carb"]];
+const STYLES = [["healthy","Healthier"],["mediterranean","Mediterranean"],["highprotein","High protein"],["budget","Budget-friendly"],["quick","Quick (25 min or less)"],["comfort","Comfort food"],["mexican","Mexican-inspired"],["asian","Asian-inspired"],["halloween","Spooky specials"]];
+const TAGLABEL = Object.fromEntries([...RESTRICT, ...STYLES, ["custom","Custom"]].map(([k, v]) => [k, v.replace(/ \(.*\)/, "")]));
+TAGLABEL.gf = "GF"; TAGLABEL.df = "Dairy-free"; TAGLABEL.halloween = "Spooky";
+/* Price index vs. an average UK supermarket basket. Rough starting points; edit them in Household. */
+const STORES = [
+ ["aldi","Aldi",.82],["lidl","Lidl",.83],["asda","Asda",.90],["tesco","Tesco (Clubcard prices)",.94],["iceland","Iceland",.95],
+ ["sainsburys","Sainsbury's (Nectar prices)",.96],["morrisons","Morrisons",1.00],["ocado","Ocado",1.06],["coop","Co-op",1.12],
+ ["waitrose","Waitrose",1.18],["mands","M&S Food",1.22]
+];
+const SLOT = { breakfast: "Breakfast", lunch: "Lunch", dinner: "Dinner", snack: "Snack" };
+const SHARE4 = { breakfast: .25, lunch: .30, dinner: .35, snack: .10 };
+const SHARE3 = { breakfast: .28, lunch: .32, dinner: .40 };
+
+/* ---------- state ---------- */
+const LS_KEY = "cauldron-planner-uk-v1";
+function todayISO() { const d = new Date(); return iso(d); }
+function iso(d) { return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0"); }
+function parseISO(s) { const [y, m, d] = s.split("-").map(Number); return new Date(y, m - 1, d); }
+function addDays(s, n) { const d = parseISO(s); d.setDate(d.getDate() + n); return iso(d); }
+function defaultState() {
+  return {
+    v: 1, example: true,
+    members: [{ id: "m1", name: "Alex", kcal: 2200 }, { id: "m2", name: "Sam", kcal: 1800 }, { id: "m3", name: "Kiddo (8)", kcal: 1400 }],
+    restrict: [], styles: ["healthy", "mediterranean"], avoid: "",
+    budget: 120, storesOn: ["aldi", "tesco", "sainsburys"], storeIdx: {}, customStores: [],
+    start: todayISO(), days: 7, snacks: true, seed: 20261031,
+    plan: [], checked: {}, hidePantry: true, custom: [], dirty: false,
+    tab: "today", day: 0, updatedAt: 0
+  };
+}
+let state = defaultState();
+try { const raw = localStorage.getItem(LS_KEY); if (raw) state = Object.assign(defaultState(), JSON.parse(raw)); } catch (e) {}
+
+let db = null, dbPath = null, writeChain = Promise.resolve(), cloudTimer = null, sampler = null;
+let syncMode = "local", openCalc = null, recipeFilter = { q: "", meal: "all", match: true }, conjureResult = null, conjuring = false;
+
+function save() {
+  state.updatedAt = Date.now();
+  const json = JSON.stringify(state);
+  try { localStorage.setItem(LS_KEY, json); } catch (e) {}
+  if (db) {
+    clearTimeout(cloudTimer);
+    cloudTimer = setTimeout(() => {
+      const body = { state: JSON.stringify(state), updatedAt: state.updatedAt };
+      writeChain = writeChain.then(() => db.doc(dbPath).set(body)).then(() => setSync("cloud"), () => setSync("local"));
+    }, 900);
+  }
+}
+async function initRuntime() {
+  const c = window.claude;
+  if (!c || !c.use) return;
+  c.use("sample").then(s => { sampler = s; if (state.tab === "recipes" || state.tab === "today") render(); }).catch(() => {});
+  try {
+    const [d, u] = await Promise.all([c.use("db"), c.use("user")]);
+    if (!d || !u) return;
+    const id = await u.id();
+    if (!id) return;
+    db = d; dbPath = "data/users/" + id + "/planner";
+    const snap = await db.doc(dbPath).get();
+    if (snap.exists) {
+      const remote = snap.data();
+      if (remote && remote.updatedAt > (state.updatedAt || 0)) {
+        try { state = Object.assign(defaultState(), JSON.parse(remote.state)); render(); } catch (e) {}
+      } else if (state.updatedAt > (remote.updatedAt || 0)) save();
+    } else if (state.updatedAt) save();
+    setSync("cloud");
+  } catch (e) { db = null; }
+}
+function setSync(mode) {
+  syncMode = mode;
+  const el = document.getElementById("syncPill");
+  el.innerHTML = mode === "cloud" ? '<span class="dot"></span>Synced' : '<span class="dot warn"></span>This device';
+  el.title = mode === "cloud" ? "Saved to your account. Open this page on any device to see the same plan." : "Saved in this browser only.";
+}
+
+/* ---------- helpers ---------- */
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const money = n => "£" + (Math.round(n * 100) / 100).toFixed(2);
+const money0 = n => "£" + Math.round(n).toLocaleString("en-GB");
+const k = n => Math.round(n).toLocaleString();
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+function mulberry(a) { return () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+function allRecipes() { return LIB.concat(state.custom.map(c => Object.assign({}, c, { tags: withQuick(c.tags, c.time) }))); }
+function byId(id) { return allRecipes().find(r => r.id === id); }
+function slots() { return state.snacks ? ["breakfast", "lunch", "dinner", "snack"] : ["breakfast", "lunch", "dinner"]; }
+function householdKcal() { return state.members.reduce((s, m) => s + (+m.kcal || 0), 0) || 2000; }
+function avgKcal() { return householdKcal() / Math.max(1, state.members.length); }
+function allStores() { return STORES.map(([id, name, idx]) => ({ id, name, idx: state.storeIdx[id] ?? idx })).concat(state.customStores); }
+function chosenStores() { const on = allStores().filter(s => state.storesOn.includes(s.id)); return on.length ? on : [{ id: "avg", name: "Average store", idx: 1 }]; }
+function bestIdx() { return Math.min(...chosenStores().map(s => +s.idx || 1)); }
+function planBudget() { return state.budget * state.plan.length / 7; }
+function dayBudget() { return state.budget / 7; }
+
+function allowed(r) {
+  const t = r.tags, R = state.restrict;
+  if (R.includes("vegan") && !t.includes("vegan")) return false;
+  if (R.includes("vegetarian") && !(t.includes("vegetarian") || t.includes("vegan"))) return false;
+  if (R.includes("pescatarian") && !(t.includes("pescatarian") || t.includes("vegetarian") || t.includes("vegan"))) return false;
+  for (const x of ["gf", "df", "keto"]) if (R.includes(x) && !t.includes(x)) return false;
+  const avoid = state.avoid.toLowerCase().split(",").map(s => s.trim()).filter(Boolean);
+  if (avoid.length) {
+    const hay = (r.name + " " + r.ing.map(i => i[0]).join(" ")).toLowerCase();
+    if (avoid.some(w => hay.includes(w))) return false;
+  }
+  return true;
+}
+const fitsSlot = (r, slot) => r.meals.includes(slot[0]);
+
+/* servings for one planned day: portions are scaled so each person hits their calorie target */
+function dayInfo(day) {
+  const recs = slots().map(s => day.meals[s] && byId(day.meals[s].id)).filter(Boolean);
+  const kcal = recs.reduce((s, r) => s + r.kcal, 0) || 1;
+  const servings = householdKcal() / kcal;
+  const baseCost = recs.reduce((s, r) => s + r.cost, 0) * servings;
+  const protein = recs.reduce((s, r) => s + r.protein, 0);
+  return { recs, kcal, servings, baseCost, cost: baseCost * bestIdx(), protein };
+}
+function planBaseCost() { return state.plan.reduce((s, d) => s + dayInfo(d).baseCost, 0); }
+
+/* ---------- planning ---------- */
+function rank(dayIdx, slot, rnd, plan) {
+  const share = (state.snacks ? SHARE4 : SHARE3)[slot];
+  const target = avgKcal() * share;
+  const allowedPer1000 = dayBudget() / (householdKcal() / 1000) / bestIdx();
+  const usage = {}, recent = new Set();
+  plan.forEach((d, i) => slots().forEach(s => {
+    const m = d.meals && d.meals[s]; if (!m || (i === dayIdx && s === slot)) return;
+    usage[m.id] = (usage[m.id] || 0) + 1;
+    if (Math.abs(i - dayIdx) <= 2) recent.add(m.id);
+  }));
+  const pool = allRecipes().filter(r => fitsSlot(r, slot) && allowed(r));
+  return pool.map(r => {
+    let s = rnd() * .9;
+    for (const st of state.styles) if (r.tags.includes(st)) s += .6;
+    s -= Math.min(1.5, Math.abs(r.kcal - target) / target) * .8;
+    if (recent.has(r.id)) s -= 2;
+    s -= (usage[r.id] || 0) * .7;
+    const rel = (r.cost / r.kcal * 1000) / allowedPer1000;
+    const w = state.styles.includes("budget") ? 2.5 : 1.5;
+    s += rel > 1 ? -(rel - 1) * w : (1 - rel) * .2;
+    if (r.id.startsWith("ai_")) s += .3;
+    return { r, s };
+  }).sort((a, b) => b.s - a.s);
+}
+function generate(keepLocked = true) {
+  state.seed = (state.seed * 1103515245 + 12345) % 2147483647;
+  const rnd = mulberry(state.seed);
+  const old = state.plan;
+  const plan = [];
+  for (let i = 0; i < state.days; i++) {
+    const date = addDays(state.start, i);
+    const prev = old.find(d => d.date === date);
+    const day = { date, meals: {} };
+    plan.push(day);
+    for (const s of slots()) {
+      const keep = keepLocked && prev && prev.meals[s] && prev.meals[s].locked && byId(prev.meals[s].id);
+      if (keep) { day.meals[s] = { id: prev.meals[s].id, locked: true }; continue; }
+      const top = rank(i, s, rnd, plan)[0];
+      day.meals[s] = top ? { id: top.r.id, locked: false } : null;
+    }
+    // trim the day toward the daily budget by swapping the priciest unlocked meal for a cheaper good fit
+    for (let n = 0; n < 4 && dayInfo(day).cost > dayBudget() * 1.05; n++) {
+      const open = slots().filter(s => day.meals[s] && !day.meals[s].locked);
+      if (!open.length) break;
+      open.sort((a, b) => byId(day.meals[b].id).cost - byId(day.meals[a].id).cost);
+      const s = open[0], cur = byId(day.meals[s].id);
+      const alt = rank(i, s, rnd, plan).slice(0, 12).filter(x => x.r.cost / x.r.kcal < cur.cost / cur.kcal * .85)[0];
+      if (!alt) break;
+      day.meals[s] = { id: alt.r.id, locked: false };
+    }
+  }
+  state.plan = plan;
+  state.checked = {};
+  state.dirty = false;
+  const t = plan.findIndex(d => d.date === todayISO());
+  state.day = t >= 0 ? t : 0;
+  save();
+}
+function swapMeal(d, s) {
+  const day = state.plan[d], cur = day.meals[s];
+  const seen = new Set((cur && cur.seen) || []);
+  if (cur) seen.add(cur.id);
+  const list = rank(d, s, mulberry(Date.now() & 0xffff), state.plan);
+  let pick = list.find(x => !seen.has(x.r.id));
+  if (!pick) { seen.clear(); if (cur) seen.add(cur.id); pick = list.find(x => x.r.id !== (cur && cur.id)); }
+  if (!pick) return toast("No other recipes fit this slot. Loosen filters or conjure one.");
+  day.meals[s] = { id: pick.r.id, locked: false, seen: [...seen].slice(-12) };
+  save(); render();
+}
+
+/* ---------- groceries ---------- */
+const COUNT = ["each", "tin", "slice", "bunch", "clove", "stick", "rasher"];
+const PLURAL = { tin: "tins", slice: "slices", bunch: "bunches", clove: "cloves", stick: "sticks", rasher: "rashers" };
+function frac(q) {
+  const w = Math.floor(q + 1e-9), f = Math.round((q - w) * 4) / 4;
+  const g = { 0: "", .25: "¼", .5: "½", .75: "¾", 1: "" }[f];
+  const whole = f === 1 ? w + 1 : w;
+  return (whole ? whole : "") + g || "0";
+}
+/* buy = rounded up to what you'd pick off the shelf; otherwise kitchen-scale amounts */
+function fmtQty(q, unit, buy) {
+  if (unit === "g" || unit === "ml") {
+    if (q >= 1000) return (Math.ceil(q / 100) / 10).toLocaleString("en-GB") + (unit === "g" ? " kg" : " litres");
+    const step = buy ? (q < 100 ? 5 : q < 400 ? 10 : 50) : (q < 20 ? 1 : 5);
+    return Math.max(step, Math.ceil(q / step - .01) * step) + " " + unit;
+  }
+  if (unit === "tsp" && q >= 3) { q /= 3; unit = "tbsp"; }
+  if (buy && COUNT.includes(unit)) q = Math.ceil(q - .05);
+  else q = Math.max(.25, Math.ceil(q * 4 - .1) / 4);
+  const n = frac(q);
+  if (unit === "each") return n;
+  const u = q > 1 && PLURAL[unit] ? PLURAL[unit] : unit;
+  return n + " " + u;
+}
+function groceryList() {
+  const map = new Map();
+  for (const day of state.plan) {
+    const info = dayInfo(day);
+    for (const r of info.recs) for (const [name, qty, unit, aisle] of r.ing) {
+      const key = name.toLowerCase() + "|" + unit;
+      const cur = map.get(key) || { key, name, unit, aisle, qty: 0 };
+      cur.qty += qty * info.servings;
+      map.set(key, cur);
+    }
+  }
+  return [...map.values()];
+}
+
+/* ---------- views ---------- */
+function render() {
+  document.querySelectorAll(".tab").forEach(t => t.setAttribute("aria-selected", String(t.dataset.tab === state.tab)));
+  const main = document.getElementById("main");
+  const views = { today: viewToday, week: viewWeek, groceries: viewGroceries, recipes: viewRecipes, setup: viewSetup };
+  main.innerHTML = (views[state.tab] || viewToday)();
+  renderHeader();
+}
+function renderHeader() {
+  const est = planBaseCost() * bestIdx(), b = planBudget();
+  const pill = document.getElementById("budgetPill");
+  const ratio = b ? est / b : 0;
+  pill.className = "pill " + (ratio > 1 ? "over" : "ok");
+  pill.innerHTML = `<span class="dot ${ratio > 1 ? "bad" : ratio > .92 ? "warn" : ""}"></span>${money0(est)} of ${money0(b)}`;
+  pill.title = `Estimated groceries for ${state.plan.length} days at your cheapest selected store, against your budget`;
+  const now = new Date(), hw = new Date(now.getFullYear(), 9, 31);
+  const nights = Math.round((hw - new Date(now.getFullYear(), now.getMonth(), now.getDate())) / 864e5);
+  const cd = document.getElementById("countdown");
+  cd.hidden = !(nights >= 0 && nights <= 45);
+  cd.textContent = nights === 0 ? "🎃 Halloween tonight" : `🎃 ${nights} night${nights === 1 ? "" : "s"} to Halloween`;
+}
+function banners() {
+  let h = "";
+  if (state.example) h += `<div class="banner"><p><b>This is a sample household.</b> Swap in your people, calorie targets, budget and stores, then rebuild the plan.</p><button class="btn primary sm" data-act="tab" data-v="setup">Set up my household</button></div>`;
+  else if (state.dirty) h += `<div class="banner"><p>Your settings changed. Rebuild the plan to apply them. Locked meals stay put.</p><button class="btn primary sm" data-act="generate">Rebuild plan</button></div>`;
+  const last = state.plan.length && state.plan[state.plan.length - 1].date;
+  if (last && last < todayISO()) h += `<div class="banner"><p>This plan ended on ${fmtDate(last)}.</p><button class="btn primary sm" data-act="fromToday">Plan from today</button></div>`;
+  return h;
+}
+function fmtDate(s, opts = { weekday: "short", month: "short", day: "numeric" }) { return parseISO(s).toLocaleDateString("en-GB", opts); }
+function costClass(c, b) { return c > b * 1.1 ? "bad" : c > b ? "warn" : ""; }
+function tagChips(r, max = 4) {
+  const order = ["halloween", "custom", ...RESTRICT.map(x => x[0]), ...STYLES.map(x => x[0])];
+  const tags = [...new Set(r.tags)].sort((a, b) => order.indexOf(a) - order.indexOf(b)).slice(0, max);
+  return tags.map(t => `<span class="chip ${t === "halloween" ? "spooky" : t === "custom" ? "ai" : ""}">${esc(TAGLABEL[t] || t)}</span>`).join("");
+}
+
+function viewToday() {
+  if (!state.plan.length) return banners() + `<section class="panel"><h2>No plan yet</h2><p class="sub">Build one from your household settings.</p><button class="btn primary" data-act="generate">Build my plan</button></section>`;
+  state.day = clamp(state.day, 0, state.plan.length - 1);
+  const t = todayISO();
+  const doors = state.plan.map((d, i) => {
+    const c = dayInfo(d).cost;
+    return `<button class="door ${d.date === t ? "today" : ""}" data-act="day" data-v="${i}" aria-current="${i === state.day}" aria-label="Day ${i + 1}, ${fmtDate(d.date)}">
+      <span class="dot ${costClass(c, dayBudget())}"></span><span class="n">${i + 1}</span><span class="wd">${fmtDate(d.date, { weekday: "short" })}</span><span class="dt">${fmtDate(d.date, { month: "short", day: "numeric" })}</span></button>`;
+  }).join("");
+  const day = state.plan[state.day], info = dayInfo(day);
+  const db_ = dayBudget(), cc = costClass(info.cost, db_);
+  const people = state.members.map(m => {
+    const sc = (+m.kcal || 0) / info.kcal;
+    return `<span class="person"><b>${esc(m.name)}</b> · ${k(m.kcal)} kcal · ${Math.round(info.protein * sc)} g protein</span>`;
+  }).join("");
+  const meals = slots().map(s => mealCard(day, s, info)).join("");
+  return banners() + `
+  <nav class="doors" aria-label="Plan days">${doors}</nav>
+  <section class="panel daycard">
+    <div class="bignum" aria-hidden="true">${state.day + 1}</div>
+    <div class="stack" style="gap:6px">
+      <span class="eyebrow">Day ${state.day + 1} of ${state.plan.length}${day.date === t ? " · Today" : ""}</span>
+      <h2>${fmtDate(day.date, { weekday: "long", month: "long", day: "numeric" })}</h2>
+      <span class="sub">Portions are sized so each person hits their own calorie target.</span>
+    </div>
+    <div class="stats">
+      <div class="stat"><span class="eyebrow">Household calories</span><b>${k(householdKcal())}</b><span class="sub">${state.members.length} ${state.members.length === 1 ? "person" : "people"}</span></div>
+      <div class="stat"><span class="eyebrow">Day cost</span><b>${money(info.cost)}</b><div class="meter"><i class="${cc}" style="width:${clamp(info.cost / db_ * 100, 2, 100)}%"></i></div><span class="sub">Daily budget ${money(db_)}</span></div>
+      <div class="stat"><span class="eyebrow">Cook time</span><b>${info.recs.reduce((s, r) => s + r.time, 0)} min</b><span class="sub">across ${info.recs.length} meals</span></div>
+    </div>
+    <div class="people">${people}</div>
+  </section>
+  <section class="meals">${meals}</section>
+  <div class="row"><button class="btn" data-act="generate">Reroll unlocked meals</button>${sampler ? `<button class="btn on" data-act="conjureFor" data-v="${state.day}">✦ Conjure an AI recipe for this day</button>` : ""}</div>`;
+}
+function mealCard(day, s, info) {
+  const m = day.meals[s], r = m && byId(m.id);
+  if (!r) return `<article class="meal"><div class="eyebrow">${SLOT[s]}</div><p class="empty">Nothing matches your filters for ${SLOT[s].toLowerCase()}. Loosen a restriction in Household or conjure a recipe.</p><div class="acts"><button class="btn sm" data-act="swap" data-s="${s}">Try again</button></div></article>`;
+  const portions = state.members.map(p => {
+    const sv = (+p.kcal || 0) / info.kcal;
+    return `<span><span>${esc(p.name)}</span><span>${sv.toFixed(1)}× · ${k(r.kcal * sv)} kcal</span></span>`;
+  }).join("");
+  return `<article class="meal ${m.locked ? "locked" : ""}">
+    <div class="head"><span class="eyebrow">${SLOT[s]}</span><span class="sub num">${money(r.cost * info.servings * bestIdx())}</span></div>
+    <div class="row" style="flex-wrap:nowrap;align-items:flex-start"><span class="emoji" aria-hidden="true">${r.emoji}</span><div class="grow"><h3 data-act="open" data-v="${esc(r.id)}" data-day="${state.day}" data-s="${s}" tabindex="0" role="button">${esc(r.name)}</h3><span class="sub">${r.time} min · ${r.kcal} kcal / serving · ${r.protein} g protein</span></div></div>
+    <div class="meta">${tagChips(r)}</div>
+    <div class="portions">${portions}</div>
+    <div class="acts">
+      <button class="btn sm" data-act="swap" data-s="${s}" ${m.locked ? "disabled" : ""}>Swap</button>
+      <button class="btn sm ${m.locked ? "on" : ""}" data-act="lock" data-s="${s}" aria-pressed="${!!m.locked}">${m.locked ? "Locked" : "Lock"}</button>
+      <button class="btn sm ghost" data-act="open" data-v="${esc(r.id)}" data-day="${state.day}" data-s="${s}">Recipe</button>
+    </div>
+  </article>`;
+}
+
+function viewWeek() {
+  if (!state.plan.length) return viewToday();
+  const rows = state.plan.map((d, i) => {
+    const info = dayInfo(d);
+    const cells = slots().map(s => { const r = d.meals[s] && byId(d.meals[s].id); return `<td>${r ? `<span class="m" data-act="open" data-v="${esc(r.id)}" data-day="${i}" data-s="${s}">${r.emoji} ${esc(r.name)}</span>${d.meals[s].locked ? ' <span class="chip ai">Locked</span>' : ""}` : '<span class="sub">None</span>'}</td>`; }).join("");
+    return `<tr class="${i === state.day ? "cur" : ""}"><td class="daycell"><span class="m" data-act="gotoDay" data-v="${i}">${fmtDate(d.date)}</span></td>${cells}<td class="num"><span class="dot ${costClass(info.cost, dayBudget())}"></span> ${money(info.cost)}</td></tr>`;
+  }).join("");
+  const total = planBaseCost() * bestIdx();
+  return banners() + `<section class="panel stack">
+    <div class="row"><div class="grow"><h2>${state.plan.length}-day plan</h2><span class="sub">${fmtDate(state.plan[0].date)} to ${fmtDate(state.plan[state.plan.length - 1].date)} · estimated ${money(total)} of ${money(planBudget())}</span></div>
+    <button class="btn" data-act="generate">Reroll unlocked</button></div>
+    <div class="tablewrap"><table><thead><tr><th>Day</th>${slots().map(s => `<th>${SLOT[s]}</th>`).join("")}<th>Cost</th></tr></thead><tbody>${rows}</tbody></table></div>
+  </section>`;
+}
+
+function viewGroceries() {
+  if (!state.plan.length) return viewToday();
+  const base = planBaseCost(), budget = planBudget();
+  const stores = chosenStores().map(s => ({ ...s, total: base * s.idx })).sort((a, b) => a.total - b.total);
+  const max = Math.max(budget, ...stores.map(s => s.total)) * 1.05;
+  const bars = stores.map((s, i) => `<div class="sb ${i === 0 ? "best" : ""}"><span>${esc(s.name)}${i === 0 ? ' <span class="chip" style="color:var(--moss)">Cheapest</span>' : ""}</span>
+    <div class="track"><i style="width:${s.total / max * 100}%"></i><span class="budget" style="left:${budget / max * 100}%" title="Budget"></span></div><span class="amt">${money(s.total)}</span></div>`).join("");
+  let items = groceryList();
+  if (state.hidePantry) items = items.filter(i => i.aisle !== "S");
+  const done = items.filter(i => state.checked[i.key]).length;
+  const groups = Object.keys(AISLES).map(a => {
+    const list = items.filter(i => i.aisle === a).sort((x, y) => x.name.localeCompare(y.name));
+    if (!list.length) return "";
+    return `<div class="aisle"><h3>${AISLES[a]}</h3>${list.map(i => `<label class="item ${state.checked[i.key] ? "done" : ""}"><input type="checkbox" data-check="${esc(i.key)}" ${state.checked[i.key] ? "checked" : ""}><span class="nm">${esc(i.name)}</span><span class="q">${fmtQty(i.qty, i.unit, true)}</span></label>`).join("")}</div>`;
+  }).join("");
+  return banners() + `<section class="panel stack">
+    <div class="row"><div class="grow"><h2>Supermarket comparison</h2><span class="sub">Estimated total for ${state.plan.length} days. The yellow line is your ${money0(budget)} budget. Prices are rough UK estimates you can tune in Household.</span></div></div>
+    <div class="storebars">${bars}</div>
+  </section>
+  <section class="panel stack">
+    <div class="row"><div class="grow"><h2>Shopping list</h2><span class="sub num">${done} of ${items.length} in the basket</span></div>
+      <label class="toggle"><input type="checkbox" id="hidePantry" data-bind="hidePantry" ${state.hidePantry ? "checked" : ""}>Hide cupboard staples</label>
+      <button class="btn sm" data-act="copyList">Copy list</button>
+      <button class="btn sm ghost" data-act="clearChecks">Uncheck all</button></div>
+    <div class="aisles">${groups || '<p class="empty">Nothing to buy.</p>'}</div>
+  </section>`;
+}
+
+function conjurePanel(presetDay) {
+  if (!sampler) return `<section class="panel conjure stack"><h2>Conjure a recipe</h2><p class="sub">AI recipes appear here when this page is open in Claude. The built-in library below works everywhere.</p></section>`;
+  const r = conjureResult;
+  const slotOpts = Object.keys(SLOT).map(s => `<option value="${s}">${SLOT[s]}</option>`).join("");
+  return `<section class="panel conjure stack" id="conjure">
+    <div><h2>Conjure a recipe</h2><span class="sub">Claude writes a new recipe that follows your restrictions, styles, calories and budget.</span></div>
+    <form class="cgrid" data-form="conjure">
+      <label class="field">Meal<select id="cj-slot">${slotOpts}</select></label>
+      <label class="field">What sounds good?<input type="text" id="cj-text" placeholder="e.g. cosy one-pot with sweet potato, kid-friendly" maxlength="200"></label>
+      <button class="btn primary" type="submit" ${conjuring ? "disabled" : ""}>${conjuring ? '<span class="spin"></span> Stirring…' : "✦ Conjure"}</button>
+    </form>
+    ${r ? `<div class="rcard" data-act="open" data-v="${esc(r.id)}"><div class="t"><span>${r.emoji}</span><span>${esc(r.name)}</span></div><span class="sub">${r.time} min · ${r.kcal} kcal · ${money(r.cost)}/serving</span><div class="meta">${tagChips(r, 5)}</div><span class="sub">Saved to your recipes. Open it to add it to a day.</span></div>` : ""}
+  </section>`;
+}
+function viewRecipes() {
+  const f = recipeFilter;
+  let list = allRecipes();
+  if (f.meal !== "all") list = list.filter(r => fitsSlot(r, f.meal));
+  if (f.q) { const q = f.q.toLowerCase(); list = list.filter(r => (r.name + " " + r.tags.join(" ") + " " + r.ing.map(i => i[0]).join(" ")).toLowerCase().includes(q)); }
+  if (f.match) list = list.filter(allowed);
+  list.sort((a, b) => (b.id.startsWith("ai_") - a.id.startsWith("ai_")) || state.styles.filter(s => b.tags.includes(s)).length - state.styles.filter(s => a.tags.includes(s)).length);
+  const mealBtns = ["all", ...Object.keys(SLOT)].map(m => `<button class="btn sm ${f.meal === m ? "on" : ""}" data-act="rmeal" data-v="${m}">${m === "all" ? "All" : SLOT[m]}</button>`).join("");
+  const cards = list.map(r => `<button class="rcard ${allowed(r) ? "" : "dim"}" data-act="open" data-v="${esc(r.id)}"><span class="t"><span aria-hidden="true">${r.emoji}</span><span>${esc(r.name)}</span></span><span class="sub">${r.time} min · ${r.kcal} kcal · ${money(r.cost)}/serving</span><span class="meta">${tagChips(r, 4)}</span></button>`).join("");
+  return conjurePanel() + `<section class="panel stack">
+    <div class="row"><h2 class="grow">Recipe library</h2><span class="sub">${list.length} recipes</span></div>
+    <div class="row"><input type="search" id="rq" placeholder="Search recipes or ingredients" value="${esc(f.q)}" style="flex:1 1 220px"><label class="toggle"><input type="checkbox" id="rmatch" ${f.match ? "checked" : ""}>Only ones that fit my household</label></div>
+    <div class="row">${mealBtns}</div>
+    <div class="rgrid">${cards || '<p class="empty">No recipes match. Try fewer filters.</p>'}</div>
+  </section>`;
+}
+
+function viewSetup() {
+  const members = state.members.map(m => `<div class="member">
+      <label class="field">Name<input type="text" id="mn-${m.id}" data-member="${m.id}" data-f="name" value="${esc(m.name)}"></label>
+      <label class="field">Calories / day<input type="number" id="mk-${m.id}" data-member="${m.id}" data-f="kcal" min="800" max="5000" step="50" value="${m.kcal}"></label>
+      <div class="row rm"><button class="btn sm" data-act="calc" data-v="${m.id}">${openCalc === m.id ? "Close" : "Calculate"}</button>${state.members.length > 1 ? `<button class="btn sm ghost" data-act="rmMember" data-v="${m.id}" aria-label="Remove ${esc(m.name)}">Remove</button>` : ""}</div>
+      ${openCalc === m.id ? calcForm(m.id) : ""}
+    </div>`).join("");
+  const toggles = (list, key) => list.map(([v, l]) => `<label class="toggle"><input type="checkbox" id="${key}-${v}" data-list="${key}" value="${v}" ${state[key].includes(v) ? "checked" : ""}>${l}</label>`).join("");
+  const stores = allStores().map(s => `<div class="store"><input type="checkbox" id="st-${s.id}" data-store="${s.id}" ${state.storesOn.includes(s.id) ? "checked" : ""}><label for="st-${s.id}">${esc(s.name)}</label><input type="number" id="si-${s.id}" data-storeidx="${s.id}" min="0.5" max="2" step="0.01" value="${(+s.idx).toFixed(2)}" title="Price index: 1.00 is an average UK supermarket" aria-label="${esc(s.name)} price index"></div>`).join("");
+  return `<div class="setup">
+  <section class="panel stack">
+    <div><h2>Household</h2><span class="sub">Everyone eats the same meals; portions scale to each person's calories.</span></div>
+    <div>${members}</div>
+    <div class="row"><button class="btn" data-act="addMember">Add person</button><span class="sub num">Total ${k(householdKcal())} kcal/day</span></div>
+  </section>
+  <section class="panel stack">
+    <div><h2>Diet & style</h2><span class="sub">Restrictions are strict. Styles are preferences that steer the picks.</span></div>
+    <span class="eyebrow">Must be</span><div class="chips">${toggles(RESTRICT, "restrict")}</div>
+    <span class="eyebrow">Lean toward</span><div class="chips">${toggles(STYLES, "styles")}</div>
+    <label class="field">Avoid these ingredients (comma separated)<input type="text" id="avoid" data-bind="avoid" value="${esc(state.avoid)}" placeholder="e.g. mushrooms, shrimp, peanut"></label>
+  </section>
+  <section class="panel stack">
+    <div><h2>Budget & stores</h2><span class="sub">The planner trims expensive days and compares your stores.</span></div>
+    <label class="field">Weekly food shop budget (£)<input type="number" id="budget" data-bind="budget" min="20" step="5" value="${state.budget}"></label>
+    <div class="row"><span class="eyebrow grow">Where you shop</span><span class="sub">Price index</span></div>
+    <div class="stores">${stores}</div>
+    <form class="row" data-form="addStore"><input type="text" id="ns-name" placeholder="Add another shop" style="flex:1 1 140px"><input type="number" id="ns-idx" step="0.01" min="0.5" max="2" value="1.00" style="width:84px" aria-label="Price index"><button class="btn sm" type="submit">Add</button></form>
+  </section>
+  <section class="panel stack">
+    <div><h2>Plan</h2><span class="sub">One card per day, like a countdown calendar.</span></div>
+    <div class="row">
+      <label class="field grow">Start date<input type="date" id="start" data-bind="start" value="${state.start}"></label>
+      <label class="field" style="width:120px">Days<input type="number" id="days" data-bind="days" min="1" max="31" value="${state.days}"></label>
+    </div>
+    <label class="toggle" style="justify-self:start"><input type="checkbox" id="snacks" data-bind="snacks" ${state.snacks ? "checked" : ""}>Include a daily snack</label>
+    <div class="row"><button class="btn primary" data-act="generate">Build my plan</button><button class="btn ghost" data-act="reset">Start over</button></div>
+  </section>
+  </div>`;
+}
+function calcForm(id) {
+  return `<form class="calc" data-form="calc" data-v="${id}">
+    <label class="field">Sex<select id="c-sex"><option value="f">Female</option><option value="m">Male</option></select></label>
+    <label class="field">Age<input type="number" id="c-age" min="2" max="100" value="35"></label>
+    <label class="field">Weight (kg)<input type="number" id="c-wt" min="10" max="300" value="75"></label>
+    <label class="field">Height (cm)<input type="number" id="c-ht" min="70" max="230" value="170"></label>
+    <label class="field">Activity<select id="c-act"><option value="1.2">Mostly sitting</option><option value="1.375" selected>Light exercise</option><option value="1.55">Active 3–5 days</option><option value="1.725">Very active</option></select></label>
+    <label class="field">Goal<select id="c-goal"><option value="-500">Lose ~0.5 kg a week</option><option value="0" selected>Maintain</option><option value="300">Gain muscle</option></select></label>
+    <button class="btn primary sm" type="submit">Use this</button>
+    <span class="sub" style="grid-column:1/-1">Mifflin-St Jeor estimate for adults; rough NHS/SACN ranges for under-18s. Your GP or a dietitian can fine-tune it.</span>
+  </form>`;
+}
+function calcKcal(sex, age, kg, cm, act, goal) {
+  if (age < 18) { const t = age < 4 ? 1100 : age < 9 ? 1500 : age < 14 ? (sex === "m" ? 2000 : 1800) : (sex === "m" ? 2600 : 2000); return Math.round((t * act / 1.375) / 50) * 50; }
+  const bmr = 10 * kg + 6.25 * cm - 5 * age + (sex === "m" ? 5 : -161);
+  return Math.round((bmr * act + goal) / 50) * 50;
+}
+
+/* ---------- recipe modal ---------- */
+function openRecipe(id, dayIdx, slot) {
+  const r = byId(id); if (!r) return;
+  const day = dayIdx != null && state.plan[dayIdx];
+  const info = day ? dayInfo(day) : null;
+  const sv = info ? info.servings : state.members.length;
+  const ing = r.ing.map(([n, q, u]) => `<li><span>${esc(n)}</span><span>${fmtQty(q * sv, u, false)}</span></li>`).join("");
+  const portions = info ? state.members.map(p => `<span class="person"><b>${esc(p.name)}</b> ${((+p.kcal || 0) / info.kcal).toFixed(1)} servings</span>`).join("") : "";
+  const dayOpts = state.plan.map((d, i) => `<option value="${i}" ${i === state.day ? "selected" : ""}>Day ${i + 1} · ${fmtDate(d.date)}</option>`).join("");
+  const slotOpts = slots().filter(s => fitsSlot(r, s)).concat(slots().filter(s => !fitsSlot(r, s))).map(s => `<option value="${s}">${SLOT[s]}</option>`).join("");
+  document.getElementById("modalBody").innerHTML = `
+    <div class="mhead"><span class="e" aria-hidden="true">${r.emoji}</span><div class="grow"><h2>${esc(r.name)}</h2><span class="sub">${r.time} min · ${money(r.cost * bestIdx())} per serving at ${esc(chosenStores().sort((a, b) => a.idx - b.idx)[0].name)}</span><div class="meta row" style="gap:6px;margin-top:6px">${tagChips(r, 8)}</div></div><button class="btn sm ghost" data-act="close" aria-label="Close">Close</button></div>
+    <div class="macros"><div><b>${r.kcal}</b>kcal</div><div><b>${r.protein} g</b>protein</div><div><b>${r.carbs} g</b>carbs</div><div><b>${r.fat} g</b>fat</div></div>
+    <span class="sub">Per serving.</span>
+    ${info ? `<div class="stack" style="gap:6px"><span class="eyebrow">For your household (${frac(Math.round(sv * 4) / 4)} servings)</span><div class="people">${portions}</div></div>` : ""}
+    <div class="stack" style="gap:6px"><span class="eyebrow">Ingredients${info ? "" : ` for ${sv} servings`}</span><ul class="ing">${ing}</ul></div>
+    <div class="stack" style="gap:6px"><span class="eyebrow">Method</span><ol class="steps">${r.steps.map(s => `<li>${esc(s)}</li>`).join("")}</ol></div>
+    ${state.plan.length ? `<form class="row" data-form="addToPlan" data-v="${esc(r.id)}" style="border-top:1px solid var(--line);padding-top:12px"><select id="ap-day" style="flex:1 1 160px">${dayOpts}</select><select id="ap-slot" style="flex:0 1 130px">${slotOpts}</select><button class="btn primary sm" type="submit">Put on plan</button></form>` : ""}
+    ${!allowed(r) ? `<p class="sub" style="color:var(--blood)">This recipe doesn't fit your current restrictions or avoid list.</p>` : ""}
+    ${r.id.startsWith("ai_") ? `<div class="row"><span class="chip ai">Made by Claude</span><button class="btn sm ghost" data-act="delCustom" data-v="${esc(r.id)}">Delete recipe</button></div>` : ""}`;
+  const dlg = document.getElementById("modal");
+  if (!dlg.open) dlg.showModal();
+  if (dayIdx != null) { const d = document.getElementById("ap-day"); if (d) d.value = dayIdx; const s = document.getElementById("ap-slot"); if (s && slot) s.value = slot; }
+}
+
+/* ---------- AI conjure ---------- */
+async function conjure(slot, text) {
+  if (!sampler || conjuring) return;
+  conjuring = true; render();
+  const target = Math.round(avgKcal() * (state.snacks ? SHARE4 : SHARE3)[slot] || 300);
+  const maxCost = Math.max(.8, (dayBudget() / (householdKcal() / 1000) / bestIdx()) * target / 1000 * 1.3).toFixed(2);
+  const restr = state.restrict.map(r => TAGLABEL[r]).join(", ") || "none";
+  const styles = state.styles.map(s => TAGLABEL[s]).join(", ") || "none";
+  const prompt = `You are a recipe developer for a home meal planner. Write ONE original ${SLOT[slot].toLowerCase()} recipe.
+Strict dietary restrictions (must be followed exactly): ${restr}.
+Preferred styles: ${styles}.
+Never use these ingredients: ${state.avoid || "none"}.
+The cook asked for: "${text || "surprise me"}".
+Aim for about ${target} kcal per serving and at most £${maxCost} per serving at typical UK supermarket prices (Tesco, Sainsbury's, Aldi). Use ingredients any UK supermarket stocks, British names (courgette, coriander, mince, tinned, plain flour), metric amounts, and oven temperatures in °C with the fan temperature in brackets.
+Reply with JSON only, no prose, in exactly this shape:
+{"name":"string, max 40 chars","emoji":"one food emoji","time":minutes as integer,"kcal":integer per serving,"protein":grams integer,"carbs":grams integer,"fat":grams integer,"cost":GBP per serving as number,
+"tags":["any that truly apply from: vegan, vegetarian, pescatarian, gf, df, keto, healthy, mediterranean, highprotein, budget, comfort, mexican, asian, halloween"],
+"ingredients":[{"name":"lowercase grocery item","qty":number for ONE serving,"unit":"g|ml|each|tbsp|tsp|tin|slice|clove|bunch|stick|rasher","aisle":"Fruit & Veg|Meat & Fish|Dairy, Eggs & Chilled|Bakery|Tins, Jars & Dry Goods|Frozen|Nuts, Seeds & Snacks|Cupboard Staples & Spices"}],
+"steps":["3 to 6 short imperative steps"]}`;
+  try {
+    const j = await sampler.json(prompt, { modelTier: "default" });
+    const aisleCode = Object.fromEntries(Object.entries(AISLES).map(([c, n]) => [n.toLowerCase(), c]));
+    const okTags = new Set([...RESTRICT, ...STYLES].map(x => x[0]));
+    const num = (v, d) => (Number.isFinite(+v) && +v > 0 ? +v : d);
+    const ing = (Array.isArray(j.ingredients) ? j.ingredients : []).slice(0, 20).map(i => [String(i.name || "ingredient").slice(0, 50), num(i.qty, 1), COUNT.concat(["g", "ml", "tbsp", "tsp"]).includes(i.unit) ? i.unit : "each", aisleCode[String(i.aisle || "").toLowerCase()] || "C"]);
+    if (!j.name || !ing.length) throw { message: "The recipe came back incomplete. Try again." };
+    const tags = [...new Set([...(Array.isArray(j.tags) ? j.tags : []).filter(t => okTags.has(t) && t !== "quick"), ...state.restrict, "custom"])];
+    const r = { id: "ai_" + Date.now().toString(36), name: String(j.name).slice(0, 60), emoji: [...String(j.emoji || "🍲")].slice(0, 2).join(""), meals: slot[0], tags,
+      kcal: Math.round(num(j.kcal, target)), protein: Math.round(num(j.protein, 15)), carbs: Math.round(num(j.carbs, 30)), fat: Math.round(num(j.fat, 10)), cost: Math.round(num(j.cost, 2) * 100) / 100,
+      time: Math.round(num(j.time, 30)), ing, steps: (Array.isArray(j.steps) ? j.steps : []).slice(0, 8).map(s => String(s).slice(0, 300)) };
+    state.custom = [r, ...state.custom].slice(0, 40);
+    conjureResult = r;
+    save();
+    toast("Recipe conjured and saved");
+  } catch (e) {
+    if (e && e.code === "not_granted") { sampler = null; toast("AI recipes weren't allowed on this page."); }
+    else if (e && e.code === "rate_limited") toast("Too many requests. Wait a minute and try again.");
+    else toast((e && e.message) || "Couldn't conjure a recipe. Try again.");
+  }
+  conjuring = false; render();
+  if (conjureResult) document.getElementById("conjure")?.scrollIntoView({ block: "nearest" });
+}
+
+/* ---------- events ---------- */
+let toastTimer;
+function toast(msg) { const t = document.getElementById("toast"); t.textContent = msg; t.classList.add("show"); clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove("show"), 2400); }
+function markEdited() { state.example = false; if (state.plan.length) state.dirty = true; }
+
+document.addEventListener("click", e => {
+  const tab = e.target.closest(".tab");
+  if (tab) { state.tab = tab.dataset.tab; save(); render(); window.scrollTo(0, 0); return; }
+  const a = e.target.closest("[data-act]"); if (!a) return;
+  const v = a.dataset.v, s = a.dataset.s;
+  switch (a.dataset.act) {
+    case "tab": state.tab = v; save(); render(); window.scrollTo(0, 0); break;
+    case "day": state.day = +v; save(); render(); break;
+    case "gotoDay": state.day = +v; state.tab = "today"; save(); render(); window.scrollTo(0, 0); break;
+    case "generate": generate(true); render(); toast("Plan brewed"); break;
+    case "fromToday": state.start = todayISO(); generate(false); render(); break;
+    case "swap": swapMeal(state.day, s); break;
+    case "lock": { const m = state.plan[state.day].meals[s]; if (m) { m.locked = !m.locked; save(); render(); } break; }
+    case "open": openRecipe(v, a.dataset.day != null ? +a.dataset.day : null, s); break;
+    case "close": document.getElementById("modal").close(); break;
+    case "rmeal": recipeFilter.meal = v; render(); break;
+    case "conjureFor": state.tab = "recipes"; render(); window.scrollTo(0, 0); document.getElementById("cj-text")?.focus(); break;
+    case "delCustom": state.custom = state.custom.filter(r => r.id !== v); state.plan.forEach(d => slots().forEach(sl => { if (d.meals[sl] && d.meals[sl].id === v) d.meals[sl] = null; })); if (conjureResult && conjureResult.id === v) conjureResult = null; save(); document.getElementById("modal").close(); render(); break;
+    case "calc": openCalc = openCalc === v ? null : v; render(); break;
+    case "addMember": state.members.push({ id: "m" + Date.now().toString(36), name: "Person " + (state.members.length + 1), kcal: 2000 }); markEdited(); save(); render(); break;
+    case "rmMember": state.members = state.members.filter(m => m.id !== v); markEdited(); save(); render(); break;
+    case "copyList": copyList(); break;
+    case "clearChecks": state.checked = {}; save(); render(); break;
+    case "reset": if (a.dataset.confirm) { const keepCustom = state.custom; state = defaultState(); state.custom = keepCustom; state.example = false; generate(false); render(); toast("Fresh start"); } else { a.dataset.confirm = "1"; a.textContent = "Tap again to erase settings"; } break;
+  }
+});
+document.addEventListener("keydown", e => { if ((e.key === "Enter" || e.key === " ") && e.target.matches("h3[data-act]")) { e.preventDefault(); e.target.click(); } });
+document.addEventListener("change", e => {
+  const t = e.target;
+  if (t.dataset.check) { state.checked[t.dataset.check] = t.checked; if (!t.checked) delete state.checked[t.dataset.check]; save(); render(); return; }
+  if (t.id === "rmatch") { recipeFilter.match = t.checked; render(); return; }
+  if (t.dataset.member) { const m = state.members.find(x => x.id === t.dataset.member); if (!m) return; m[t.dataset.f] = t.dataset.f === "kcal" ? clamp(+t.value || 2000, 800, 5000) : t.value.trim() || "Someone"; markEdited(); save(); render(); return; }
+  if (t.dataset.list) { const L = state[t.dataset.list]; const i = L.indexOf(t.value); if (t.checked && i < 0) L.push(t.value); if (!t.checked && i >= 0) L.splice(i, 1); markEdited(); save(); render(); return; }
+  if (t.dataset.store) { const L = state.storesOn, i = L.indexOf(t.dataset.store); if (t.checked && i < 0) L.push(t.dataset.store); if (!t.checked && i >= 0) L.splice(i, 1); state.example = false; save(); render(); return; }
+  if (t.dataset.storeidx) { const id = t.dataset.storeidx, val = clamp(+t.value || 1, .5, 2); const c = state.customStores.find(x => x.id === id); if (c) c.idx = val; else state.storeIdx[id] = val; state.example = false; save(); render(); return; }
+  if (t.dataset.bind) {
+    const key = t.dataset.bind;
+    if (key === "hidePantry") { state.hidePantry = t.checked; save(); render(); return; }
+    if (key === "snacks") state.snacks = t.checked;
+    else if (key === "budget") state.budget = clamp(+t.value || 100, 20, 5000);
+    else if (key === "days") state.days = clamp(Math.round(+t.value) || 7, 1, 31);
+    else if (key === "start") { if (!t.value) return; state.start = t.value; }
+    else state[key] = t.value;
+    markEdited(); save(); render();
+  }
+});
+document.addEventListener("input", e => { if (e.target.id === "rq") { recipeFilter.q = e.target.value; const pos = e.target.selectionStart; render(); const q = document.getElementById("rq"); q.focus(); q.setSelectionRange(pos, pos); } });
+document.addEventListener("submit", e => {
+  const f = e.target.closest("form[data-form]"); if (!f) return;
+  e.preventDefault();
+  const type = f.dataset.form;
+  if (type === "conjure") conjure(document.getElementById("cj-slot").value, document.getElementById("cj-text").value.trim());
+  if (type === "calc") {
+    const val = id => document.getElementById(id).value;
+    const kc = calcKcal(val("c-sex"), +val("c-age"), +val("c-wt"), +val("c-ht"), +val("c-act"), +val("c-goal"));
+    const m = state.members.find(x => x.id === f.dataset.v); if (m) m.kcal = clamp(kc, 800, 5000);
+    openCalc = null; markEdited(); save(); render(); toast(`Set to ${k(kc)} kcal/day`);
+  }
+  if (type === "addStore") {
+    const name = document.getElementById("ns-name").value.trim(); if (!name) return;
+    const id = "c" + Date.now().toString(36);
+    state.customStores.push({ id, name: name.slice(0, 30), idx: clamp(+document.getElementById("ns-idx").value || 1, .5, 2) });
+    state.storesOn.push(id); state.example = false; save(); render();
+  }
+  if (type === "addToPlan") {
+    const d = +document.getElementById("ap-day").value, s = document.getElementById("ap-slot").value;
+    state.plan[d].meals[s] = { id: f.dataset.v, locked: true };
+    state.day = d; save(); document.getElementById("modal").close(); render();
+    toast(`Added to Day ${d + 1} ${SLOT[s].toLowerCase()} and locked`);
+  }
+});
+document.getElementById("modal").addEventListener("click", e => { if (e.target.id === "modal") e.target.close(); });
+
+function copyList() {
+  let items = groceryList(); if (state.hidePantry) items = items.filter(i => i.aisle !== "S");
+  const text = Object.keys(AISLES).map(a => { const l = items.filter(i => i.aisle === a && !state.checked[i.key]); return l.length ? AISLES[a].toUpperCase() + "\n" + l.map(i => `- ${i.name}: ${fmtQty(i.qty, i.unit, true)}`).join("\n") : ""; }).filter(Boolean).join("\n\n");
+  const done = () => toast("Shopping list copied");
+  try { navigator.clipboard.writeText(text).then(done, () => fallbackCopy(text)); } catch (e) { fallbackCopy(text); }
+}
+function fallbackCopy(text) {
+  document.getElementById("modalBody").innerHTML = `<div class="mhead"><h2 class="grow">Shopping list</h2><button class="btn sm ghost" data-act="close">Close</button></div><span class="sub">Select all and copy.</span><textarea id="copybox" rows="16" readonly>${esc(text)}</textarea>`;
+  const dlg = document.getElementById("modal"); if (!dlg.open) dlg.showModal();
+  const box = document.getElementById("copybox"); box.focus(); box.select();
+}
+
+if (!state.plan.length) { const fresh = !state.updatedAt; generate(false); if (fresh) state.updatedAt = 0; }
+render();
+setSync("local");
+initRuntime();
+</script>
+
+<script>
+if ("serviceWorker" in navigator) addEventListener("load", () => navigator.serviceWorker.register("sw.js").catch(() => {}));
+</script>
+</body>
+</html>

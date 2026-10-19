@@ -1,0 +1,16 @@
+{
+  "name": "Cauldron Meal Planner",
+  "short_name": "Cauldron",
+  "description": "Daily meal planner with per-person calories, a weekly budget, UK supermarket comparison and a shopping list.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#140f1c",
+  "theme_color": "#140f1c",
+  "lang": "en-GB",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

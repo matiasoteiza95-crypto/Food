@@ -11,3 +11,13 @@ A daily, Halloween-flavored meal planner in a single `index.html` (no build step
 
 Open `index.html` in a browser to run it. Data saves to the browser; as a Claude artifact it also syncs to your account.
 Prices and price indexes are rough estimates; tune them in Household.
+
+## iPhone home-screen app
+
+`docs/` holds a home-screen (PWA) build served by GitHub Pages: app icon, full-screen launch, and offline support.
+
+- After editing `index.html`, rebuild with `python3 scripts/build-pwa.py` (and `python3 scripts/make-icons.py` to redraw the icon).
+- GitHub Pages: Settings → Pages → Deploy from a branch → this branch, folder `/docs`.
+- On the iPhone, open the Pages URL in Safari → Share → Add to Home Screen.
+
+The home-screen version saves your plan on the phone only, and AI recipes are available only in the Claude artifact version.
