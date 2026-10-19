@@ -64,6 +64,7 @@
 }
 
 * { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
 body {
   background: var(--glow), var(--bg);
   background-attachment: fixed;
@@ -120,7 +121,8 @@ main { padding-block: 20px 80px; display: grid; gap: 20px; }
 .toggle { display: inline-flex; align-items: center; gap: 8px; padding: 7px 12px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface-2); cursor: pointer; font-size: 14px; user-select: none; }
 .toggle input { accent-color: var(--pumpkin); margin: 0; }
 .toggle:has(input:checked) { border-color: var(--pumpkin); background: var(--pumpkin-soft); }
-label.field { display: grid; gap: 4px; font-size: 13px; color: var(--muted); }
+.field { display: grid; gap: 4px; font-size: 13px; color: var(--muted); }
+.field input, .field select { font-size: 15px; color: var(--fg); }
 input[type=text], input[type=number], input[type=date], input[type=search], select, textarea {
   background: var(--bg); border: 1px solid var(--line); border-radius: 10px; padding: 8px 10px; color: var(--fg); min-width: 0; width: 100%;
 }
@@ -163,7 +165,25 @@ textarea { resize: vertical; min-height: 64px; }
 .meal h3:hover { color: var(--pumpkin); }
 .meal .meta { display: flex; gap: 6px; flex-wrap: wrap; }
 .meal .portions { font-size: 12px; color: var(--muted); display: grid; gap: 2px; border-top: 1px dashed var(--line); padding-top: 8px; }
-.meal .portions span { display: flex; justify-content: space-between; gap: 8px; font-variant-numeric: tabular-nums; }
+.eat { all: unset; box-sizing: border-box; display: flex; justify-content: space-between; gap: 8px; width: calc(100% + 8px); padding: 3px 4px; margin: 0 -4px; border-radius: 6px; cursor: pointer; font-variant-numeric: tabular-nums; }
+.eat:hover { background: var(--surface-2); color: var(--fg); }
+.eat:focus-visible { outline: 2px solid var(--pumpkin); }
+.eat.off span { text-decoration: line-through; opacity: .6; }
+.fab { position: fixed; right: calc(16px + env(safe-area-inset-right, 0px)); bottom: calc(16px + env(safe-area-inset-bottom, 0px)); z-index: 6; box-shadow: var(--shadow); padding: 12px 18px; border-radius: 999px; font-size: 15px; }
+.stepper { display: flex; gap: 4px; align-items: center; }
+.stepper input { text-align: center; }
+.stepper .btn { padding: 7px 11px; }
+.member .wide { grid-column: 1 / -1; }
+.pick { display: flex; gap: 10px; align-items: center; padding: 10px 8px; border-bottom: 1px solid var(--line); flex-wrap: wrap; border-radius: 10px; }
+.pick.cur { background: var(--pumpkin-soft); }
+.pick .e { font-size: 28px; line-height: 1; }
+.pick .grow { flex: 1 1 200px; min-width: 0; display: grid; gap: 2px; }
+.pick .meta { display: flex; gap: 6px; flex-wrap: wrap; }
+.heart { all: unset; cursor: pointer; font-size: 20px; line-height: 1; color: var(--muted); padding: 6px 8px; border-radius: 8px; }
+.heart.on { color: var(--blood); }
+.heart:focus-visible { outline: 2px solid var(--pumpkin); }
+.sheetfoot { position: sticky; bottom: -20px; z-index: 1; background: var(--surface); border-top: 1px solid var(--line); display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin: 0 -20px -20px; padding: 12px 20px calc(12px + env(safe-area-inset-bottom, 0px)); }
+.mbody .panel { padding: 14px; }
 .meal .acts { display: flex; gap: 6px; flex-wrap: wrap; }
 .empty { color: var(--muted); font-size: 14px; }
 
@@ -203,7 +223,7 @@ tr.cur td { background: var(--pumpkin-soft); }
 
 /* setup */
 .setup { display: grid; gap: 20px; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); align-items: start; }
-.member { display: grid; grid-template-columns: 1fr 120px auto; gap: 8px; align-items: end; padding: 10px 0; border-bottom: 1px solid var(--line); }
+.member { display: grid; grid-template-columns: 1fr 170px auto; gap: 8px; align-items: end; padding: 10px 0; border-bottom: 1px solid var(--line); }
 .calc { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 8px; background: var(--surface-2); padding: 12px; border-radius: 12px; align-items: end; }
 .stores { display: grid; gap: 6px; }
 .store { display: grid; grid-template-columns: auto 1fr 84px; gap: 10px; align-items: center; font-size: 14px; }
@@ -243,7 +263,7 @@ ol.steps { margin: 0; padding-left: 20px; display: grid; gap: 6px; font-size: 14
   .stat { padding: 8px; }
   .stat b { font-size: 16px; }
   .cgrid { grid-template-columns: 1fr; }
-  .member { grid-template-columns: 1fr 100px; }
+  .member { grid-template-columns: 1fr 150px; }
   .member .rm { grid-column: 1 / -1; justify-self: start; }
   .sb { grid-template-columns: 90px 1fr auto; }
   .macros { grid-template-columns: repeat(2, 1fr); }
@@ -270,6 +290,7 @@ ol.steps { margin: 0; padding-left: 20px; display: grid; gap: 6px; font-size: 14
   </div>
 </header>
 <main class="wrap" id="main"></main>
+<button class="btn primary fab" id="fab" data-act="tweak">Tweak plan</button>
 <dialog id="modal"><div class="mbody" id="modalBody"></div></dialog>
 <div id="toast" role="status" aria-live="polite"></div>
 
@@ -358,7 +379,7 @@ function defaultState() {
   return {
     v: 1, example: true,
     members: [{ id: "m1", name: "Alex", kcal: 2200 }, { id: "m2", name: "Sam", kcal: 1800 }, { id: "m3", name: "Kiddo (8)", kcal: 1400 }],
-    restrict: [], styles: ["healthy", "mediterranean"], avoid: "",
+    restrict: [], styles: ["healthy", "mediterranean"], avoid: "", fav: [], ban: [],
     budget: 120, storesOn: ["aldi", "tesco", "sainsburys"], storeIdx: {}, customStores: [],
     start: todayISO(), days: 7, snacks: true, seed: 20261031,
     plan: [], checked: {}, hidePantry: true, custom: [], dirty: false,
@@ -369,7 +390,8 @@ let state = defaultState();
 try { const raw = localStorage.getItem(LS_KEY); if (raw) state = Object.assign(defaultState(), JSON.parse(raw)); } catch (e) {}
 
 let db = null, dbPath = null, writeChain = Promise.resolve(), cloudTimer = null, sampler = null;
-let syncMode = "local", openCalc = null, recipeFilter = { q: "", meal: "all", match: true }, conjureResult = null, conjuring = false;
+let syncMode = "local", openCalc = null, recipeFilter = { q: "", meal: "all", match: true, fav: false }, conjureResult = null, conjuring = false;
+let modalView = null, picker = { q: "", any: false, d: 0, s: "dinner" };
 
 function save() {
   state.updatedAt = Date.now();
@@ -428,13 +450,15 @@ function bestIdx() { return Math.min(...chosenStores().map(s => +s.idx || 1)); }
 function planBudget() { return state.budget * state.plan.length / 7; }
 function dayBudget() { return state.budget / 7; }
 
+function avoidWords() { return [state.avoid, ...state.members.map(m => m.avoid || "")].join(",").toLowerCase().split(",").map(w => w.trim()).filter(Boolean); }
 function allowed(r) {
+  if (state.ban.includes(r.id)) return false;
   const t = r.tags, R = state.restrict;
   if (R.includes("vegan") && !t.includes("vegan")) return false;
   if (R.includes("vegetarian") && !(t.includes("vegetarian") || t.includes("vegan"))) return false;
   if (R.includes("pescatarian") && !(t.includes("pescatarian") || t.includes("vegetarian") || t.includes("vegan"))) return false;
   for (const x of ["gf", "df", "keto"]) if (R.includes(x) && !t.includes(x)) return false;
-  const avoid = state.avoid.toLowerCase().split(",").map(s => s.trim()).filter(Boolean);
+  const avoid = avoidWords();
   if (avoid.length) {
     const hay = (r.name + " " + r.ing.map(i => i[0]).join(" ")).toLowerCase();
     if (avoid.some(w => hay.includes(w))) return false;
@@ -443,14 +467,17 @@ function allowed(r) {
 }
 const fitsSlot = (r, slot) => r.meals.includes(slot[0]);
 
-/* servings for one planned day: portions are scaled so each person hits their calorie target */
+/* portions are scaled so each person hits their calorie target; anyone can sit out a single meal */
+function eaters(meal) { const out = (meal && meal.out) || []; return state.members.filter(m => !out.includes(m.id)); }
 function dayInfo(day) {
-  const recs = slots().map(s => day.meals[s] && byId(day.meals[s].id)).filter(Boolean);
-  const kcal = recs.reduce((s, r) => s + r.kcal, 0) || 1;
-  const servings = householdKcal() / kcal;
-  const baseCost = recs.reduce((s, r) => s + r.cost, 0) * servings;
-  const protein = recs.reduce((s, r) => s + r.protein, 0);
-  return { recs, kcal, servings, baseCost, cost: baseCost * bestIdx(), protein };
+  const sl = slots().filter(s => day.meals[s] && byId(day.meals[s].id));
+  const recs = sl.map(s => byId(day.meals[s].id));
+  const kcal = recs.reduce((a, r) => a + r.kcal, 0) || 1;
+  const per = {};
+  let baseCost = 0;
+  sl.forEach((s, i) => { per[s] = eaters(day.meals[s]).reduce((a, m) => a + (+m.kcal || 0) / kcal, 0); baseCost += recs[i].cost * per[s]; });
+  const protein = recs.reduce((a, r) => a + r.protein, 0);
+  return { recs, slots: sl, kcal, per, baseCost, cost: baseCost * bestIdx(), protein };
 }
 function planBaseCost() { return state.plan.reduce((s, d) => s + dayInfo(d).baseCost, 0); }
 
@@ -476,6 +503,7 @@ function rank(dayIdx, slot, rnd, plan) {
     const w = state.styles.includes("budget") ? 2.5 : 1.5;
     s += rel > 1 ? -(rel - 1) * w : (1 - rel) * .2;
     if (r.id.startsWith("ai_")) s += .3;
+    if (state.fav.includes(r.id)) s += 1.2;
     return { r, s };
   }).sort((a, b) => b.s - a.s);
 }
@@ -490,20 +518,21 @@ function generate(keepLocked = true) {
     const day = { date, meals: {} };
     plan.push(day);
     for (const s of slots()) {
-      const keep = keepLocked && prev && prev.meals[s] && prev.meals[s].locked && byId(prev.meals[s].id);
-      if (keep) { day.meals[s] = { id: prev.meals[s].id, locked: true }; continue; }
+      const pm = prev && prev.meals[s], out = pm && pm.out ? { out: pm.out } : {};
+      // locked meals and days already gone by stay as they are
+      if (keepLocked && pm && (pm.locked || date < todayISO()) && byId(pm.id)) { day.meals[s] = { ...pm }; continue; }
       const top = rank(i, s, rnd, plan)[0];
-      day.meals[s] = top ? { id: top.r.id, locked: false } : null;
+      day.meals[s] = top ? { id: top.r.id, locked: false, ...out } : null;
     }
     // trim the day toward the daily budget by swapping the priciest unlocked meal for a cheaper good fit
     for (let n = 0; n < 4 && dayInfo(day).cost > dayBudget() * 1.05; n++) {
-      const open = slots().filter(s => day.meals[s] && !day.meals[s].locked);
+      const open = keepLocked && date < todayISO() ? [] : slots().filter(s => day.meals[s] && !day.meals[s].locked);
       if (!open.length) break;
       open.sort((a, b) => byId(day.meals[b].id).cost - byId(day.meals[a].id).cost);
       const s = open[0], cur = byId(day.meals[s].id);
       const alt = rank(i, s, rnd, plan).slice(0, 12).filter(x => x.r.cost / x.r.kcal < cur.cost / cur.kcal * .85)[0];
       if (!alt) break;
-      day.meals[s] = { id: alt.r.id, locked: false };
+      day.meals[s] = { ...day.meals[s], id: alt.r.id, locked: false };
     }
   }
   state.plan = plan;
@@ -521,8 +550,25 @@ function swapMeal(d, s) {
   let pick = list.find(x => !seen.has(x.r.id));
   if (!pick) { seen.clear(); if (cur) seen.add(cur.id); pick = list.find(x => x.r.id !== (cur && cur.id)); }
   if (!pick) return toast("No other recipes fit this slot. Loosen filters or conjure one.");
-  day.meals[s] = { id: pick.r.id, locked: false, seen: [...seen].slice(-12) };
+  day.meals[s] = { id: pick.r.id, locked: false, seen: [...seen].slice(-12), ...(cur && cur.out ? { out: cur.out } : {}) };
   save(); render();
+}
+function setMeal(d, s, id) {
+  const cur = state.plan[d].meals[s];
+  state.plan[d].meals[s] = { id, locked: true, ...(cur && cur.out ? { out: cur.out } : {}) };
+  save();
+}
+/* after "never suggest", swap that recipe out wherever it is planned and not locked */
+function replaceEverywhere(id) {
+  let n = 0;
+  state.plan.forEach((day, i) => slots().forEach(s => {
+    const m = day.meals[s];
+    if (!m || m.id !== id || m.locked || day.date < todayISO()) return;
+    const top = rank(i, s, mulberry(i * 97 + n), state.plan)[0];
+    day.meals[s] = top ? { id: top.r.id, locked: false, ...(m.out ? { out: m.out } : {}) } : null;
+    n++;
+  }));
+  return n;
 }
 
 /* ---------- groceries ---------- */
@@ -553,12 +599,12 @@ function groceryList() {
   const map = new Map();
   for (const day of state.plan) {
     const info = dayInfo(day);
-    for (const r of info.recs) for (const [name, qty, unit, aisle] of r.ing) {
+    info.slots.forEach((s, i) => { for (const [name, qty, unit, aisle] of info.recs[i].ing) {
       const key = name.toLowerCase() + "|" + unit;
       const cur = map.get(key) || { key, name, unit, aisle, qty: 0 };
-      cur.qty += qty * info.servings;
+      cur.qty += qty * info.per[s];
       map.set(key, cur);
-    }
+    } });
   }
   return [...map.values()];
 }
@@ -569,7 +615,23 @@ function render() {
   const main = document.getElementById("main");
   const views = { today: viewToday, week: viewWeek, groceries: viewGroceries, recipes: viewRecipes, setup: viewSetup };
   main.innerHTML = (views[state.tab] || viewToday)();
+  document.getElementById("fab").hidden = state.tab === "setup";
   renderHeader();
+  refreshModal();
+}
+function refreshModal() {
+  const dlg = document.getElementById("modal"), body = document.getElementById("modalBody");
+  if (!dlg.open || !modalView) return;
+  const top = body.scrollTop, focusId = document.activeElement && body.contains(document.activeElement) ? document.activeElement.id : null;
+  modalView();
+  body.scrollTop = top;
+  if (focusId) document.getElementById(focusId)?.focus();
+}
+function showModal(view) {
+  modalView = view;
+  view();
+  const dlg = document.getElementById("modal");
+  if (!dlg.open) { dlg.showModal(); document.getElementById("modalBody").scrollTop = 0; }
 }
 function renderHeader() {
   const est = planBaseCost() * bestIdx(), b = planBudget();
@@ -586,8 +648,8 @@ function renderHeader() {
 }
 function banners() {
   let h = "";
-  if (state.example) h += `<div class="banner"><p><b>This is a sample household.</b> Swap in your people, calorie targets, budget and stores, then rebuild the plan.</p><button class="btn primary sm" data-act="tab" data-v="setup">Set up my household</button></div>`;
-  else if (state.dirty) h += `<div class="banner"><p>Your settings changed. Rebuild the plan to apply them. Locked meals stay put.</p><button class="btn primary sm" data-act="generate">Rebuild plan</button></div>`;
+  if (state.example) h += `<div class="banner"><p><b>This is a sample household.</b> Swap in your people, calorie targets, budget and shops, then rebuild the plan.</p><button class="btn primary sm" data-act="tweak">Set up my household</button></div>`;
+  else if (state.dirty) h += `<div class="banner"><p>Your settings changed. Rebuild to apply them from today on. Locked meals and past days stay put.</p><button class="btn primary sm" data-act="generate">Rebuild plan</button></div>`;
   const last = state.plan.length && state.plan[state.plan.length - 1].date;
   if (last && last < todayISO()) h += `<div class="banner"><p>This plan ended on ${fmtDate(last)}.</p><button class="btn primary sm" data-act="fromToday">Plan from today</button></div>`;
   return h;
@@ -613,7 +675,10 @@ function viewToday() {
   const db_ = dayBudget(), cc = costClass(info.cost, db_);
   const people = state.members.map(m => {
     const sc = (+m.kcal || 0) / info.kcal;
-    return `<span class="person"><b>${esc(m.name)}</b> · ${k(m.kcal)} kcal · ${Math.round(info.protein * sc)} g protein</span>`;
+    let kc = 0, pr = 0;
+    info.slots.forEach((s, i) => { if (!((day.meals[s].out || []).includes(m.id))) { kc += info.recs[i].kcal * sc; pr += info.recs[i].protein * sc; } });
+    const short = kc < (+m.kcal || 0) - 5;
+    return `<span class="person"><b>${esc(m.name)}</b> · ${k(kc)}${short ? ` of ${k(m.kcal)}` : ""} kcal · ${Math.round(pr)} g protein</span>`;
   }).join("");
   const meals = slots().map(s => mealCard(day, s, info)).join("");
   return banners() + `
@@ -623,7 +688,7 @@ function viewToday() {
     <div class="stack" style="gap:6px">
       <span class="eyebrow">Day ${state.day + 1} of ${state.plan.length}${day.date === t ? " · Today" : ""}</span>
       <h2>${fmtDate(day.date, { weekday: "long", month: "long", day: "numeric" })}</h2>
-      <span class="sub">Portions are sized so each person hits their own calorie target.</span>
+      <span class="sub">Portions are sized so each person hits their own calorie target. Tap a name on a meal if they're not eating it.</span>
     </div>
     <div class="stats">
       <div class="stat"><span class="eyebrow">Household calories</span><b>${k(householdKcal())}</b><span class="sub">${state.members.length} ${state.members.length === 1 ? "person" : "people"}</span></div>
@@ -633,22 +698,24 @@ function viewToday() {
     <div class="people">${people}</div>
   </section>
   <section class="meals">${meals}</section>
-  <div class="row"><button class="btn" data-act="generate">Reroll unlocked meals</button>${sampler ? `<button class="btn on" data-act="conjureFor" data-v="${state.day}">✦ Conjure an AI recipe for this day</button>` : ""}</div>`;
+  <div class="row"><button class="btn" data-act="generate">Reroll unlocked meals</button><button class="btn" data-act="tweak">Change household or preferences</button>${sampler ? `<button class="btn on" data-act="conjureFor" data-v="${state.day}">✦ Conjure an AI recipe for this day</button>` : ""}</div>`;
 }
 function mealCard(day, s, info) {
   const m = day.meals[s], r = m && byId(m.id);
-  if (!r) return `<article class="meal"><div class="eyebrow">${SLOT[s]}</div><p class="empty">Nothing matches your filters for ${SLOT[s].toLowerCase()}. Loosen a restriction in Household or conjure a recipe.</p><div class="acts"><button class="btn sm" data-act="swap" data-s="${s}">Try again</button></div></article>`;
+  if (!r) return `<article class="meal"><div class="eyebrow">${SLOT[s]}</div><p class="empty">Nothing matches your filters for ${SLOT[s].toLowerCase()}. Pick any recipe, loosen a restriction, or conjure one.</p><div class="acts"><button class="btn primary sm" data-act="choose" data-s="${s}">Choose a recipe</button><button class="btn sm" data-act="tweak">Tweak</button></div></article>`;
+  const out = m.out || [];
   const portions = state.members.map(p => {
-    const sv = (+p.kcal || 0) / info.kcal;
-    return `<span><span>${esc(p.name)}</span><span>${sv.toFixed(1)}× · ${k(r.kcal * sv)} kcal</span></span>`;
+    const sv = (+p.kcal || 0) / info.kcal, off = out.includes(p.id);
+    return `<button class="eat ${off ? "off" : ""}" data-act="eat" data-s="${s}" data-v="${p.id}" aria-pressed="${!off}" title="${off ? "Not eating this meal. Tap to add them back." : "Tap if they're not eating this meal"}"><span>${esc(p.name)}</span><span>${off ? "Not eating" : `${sv.toFixed(1)}× · ${k(r.kcal * sv)} kcal`}</span></button>`;
   }).join("");
   return `<article class="meal ${m.locked ? "locked" : ""}">
-    <div class="head"><span class="eyebrow">${SLOT[s]}</span><span class="sub num">${money(r.cost * info.servings * bestIdx())}</span></div>
+    <div class="head"><span class="eyebrow">${SLOT[s]}</span><span class="sub num">${money(r.cost * info.per[s] * bestIdx())}</span></div>
     <div class="row" style="flex-wrap:nowrap;align-items:flex-start"><span class="emoji" aria-hidden="true">${r.emoji}</span><div class="grow"><h3 data-act="open" data-v="${esc(r.id)}" data-day="${state.day}" data-s="${s}" tabindex="0" role="button">${esc(r.name)}</h3><span class="sub">${r.time} min · ${r.kcal} kcal / serving · ${r.protein} g protein</span></div></div>
     <div class="meta">${tagChips(r)}</div>
-    <div class="portions">${portions}</div>
+    <div class="portions"><span class="eyebrow" style="font-size:10px">Who's eating</span>${portions}</div>
     <div class="acts">
-      <button class="btn sm" data-act="swap" data-s="${s}" ${m.locked ? "disabled" : ""}>Swap</button>
+      <button class="btn sm" data-act="choose" data-s="${s}">Choose</button>
+      <button class="btn sm" data-act="swap" data-s="${s}" ${m.locked ? "disabled" : ""}>Surprise me</button>
       <button class="btn sm ${m.locked ? "on" : ""}" data-act="lock" data-s="${s}" aria-pressed="${!!m.locked}">${m.locked ? "Locked" : "Lock"}</button>
       <button class="btn sm ghost" data-act="open" data-v="${esc(r.id)}" data-day="${state.day}" data-s="${s}">Recipe</button>
     </div>
@@ -718,9 +785,10 @@ function viewRecipes() {
   if (f.meal !== "all") list = list.filter(r => fitsSlot(r, f.meal));
   if (f.q) { const q = f.q.toLowerCase(); list = list.filter(r => (r.name + " " + r.tags.join(" ") + " " + r.ing.map(i => i[0]).join(" ")).toLowerCase().includes(q)); }
   if (f.match) list = list.filter(allowed);
+  if (f.fav) list = list.filter(r => state.fav.includes(r.id));
   list.sort((a, b) => (b.id.startsWith("ai_") - a.id.startsWith("ai_")) || state.styles.filter(s => b.tags.includes(s)).length - state.styles.filter(s => a.tags.includes(s)).length);
-  const mealBtns = ["all", ...Object.keys(SLOT)].map(m => `<button class="btn sm ${f.meal === m ? "on" : ""}" data-act="rmeal" data-v="${m}">${m === "all" ? "All" : SLOT[m]}</button>`).join("");
-  const cards = list.map(r => `<button class="rcard ${allowed(r) ? "" : "dim"}" data-act="open" data-v="${esc(r.id)}"><span class="t"><span aria-hidden="true">${r.emoji}</span><span>${esc(r.name)}</span></span><span class="sub">${r.time} min · ${r.kcal} kcal · ${money(r.cost)}/serving</span><span class="meta">${tagChips(r, 4)}</span></button>`).join("");
+  const mealBtns = ["all", ...Object.keys(SLOT)].map(m => `<button class="btn sm ${f.meal === m ? "on" : ""}" data-act="rmeal" data-v="${m}">${m === "all" ? "All" : SLOT[m]}</button>`).join("") + `<button class="btn sm ${f.fav ? "on" : ""}" data-act="rfav" aria-pressed="${f.fav}">♥ Favourites (${state.fav.length})</button>`;
+  const cards = list.map(r => `<button class="rcard ${allowed(r) ? "" : "dim"}" data-act="open" data-v="${esc(r.id)}"><span class="t"><span aria-hidden="true">${r.emoji}</span><span>${esc(r.name)}${state.fav.includes(r.id) ? ' <span style="color:var(--blood)" aria-label="favourite">♥</span>' : ""}</span></span><span class="sub">${r.time} min · ${r.kcal} kcal · ${money(r.cost)}/serving</span><span class="meta">${tagChips(r, 4)}</span></button>`).join("");
   return conjurePanel() + `<section class="panel stack">
     <div class="row"><h2 class="grow">Recipe library</h2><span class="sub">${list.length} recipes</span></div>
     <div class="row"><input type="search" id="rq" placeholder="Search recipes or ingredients" value="${esc(f.q)}" style="flex:1 1 220px"><label class="toggle"><input type="checkbox" id="rmatch" ${f.match ? "checked" : ""}>Only ones that fit my household</label></div>
@@ -729,18 +797,19 @@ function viewRecipes() {
   </section>`;
 }
 
-function viewSetup() {
+function prefsHTML() {
   const members = state.members.map(m => `<div class="member">
       <label class="field">Name<input type="text" id="mn-${m.id}" data-member="${m.id}" data-f="name" value="${esc(m.name)}"></label>
-      <label class="field">Calories / day<input type="number" id="mk-${m.id}" data-member="${m.id}" data-f="kcal" min="800" max="5000" step="50" value="${m.kcal}"></label>
+      <div class="field">Calories / day<div class="stepper"><button type="button" class="btn sm" data-act="kcalStep" data-v="${m.id}" data-d="-100" aria-label="100 fewer calories for ${esc(m.name)}">−</button><input type="number" id="mk-${m.id}" data-member="${m.id}" data-f="kcal" min="800" max="5000" step="50" value="${m.kcal}" aria-label="Calories per day for ${esc(m.name)}"><button type="button" class="btn sm" data-act="kcalStep" data-v="${m.id}" data-d="100" aria-label="100 more calories for ${esc(m.name)}">+</button></div></div>
       <div class="row rm"><button class="btn sm" data-act="calc" data-v="${m.id}">${openCalc === m.id ? "Close" : "Calculate"}</button>${state.members.length > 1 ? `<button class="btn sm ghost" data-act="rmMember" data-v="${m.id}" aria-label="Remove ${esc(m.name)}">Remove</button>` : ""}</div>
+      <label class="field wide">Won't eat (optional)<input type="text" id="ma-${m.id}" data-member="${m.id}" data-f="avoid" value="${esc(m.avoid || "")}" placeholder="e.g. fish, mushrooms, spicy"></label>
       ${openCalc === m.id ? calcForm(m.id) : ""}
     </div>`).join("");
   const toggles = (list, key) => list.map(([v, l]) => `<label class="toggle"><input type="checkbox" id="${key}-${v}" data-list="${key}" value="${v}" ${state[key].includes(v) ? "checked" : ""}>${l}</label>`).join("");
   const stores = allStores().map(s => `<div class="store"><input type="checkbox" id="st-${s.id}" data-store="${s.id}" ${state.storesOn.includes(s.id) ? "checked" : ""}><label for="st-${s.id}">${esc(s.name)}</label><input type="number" id="si-${s.id}" data-storeidx="${s.id}" min="0.5" max="2" step="0.01" value="${(+s.idx).toFixed(2)}" title="Price index: 1.00 is an average UK supermarket" aria-label="${esc(s.name)} price index"></div>`).join("");
-  return `<div class="setup">
-  <section class="panel stack">
-    <div><h2>Household</h2><span class="sub">Everyone eats the same meals; portions scale to each person's calories.</span></div>
+  const banned = state.ban.map(id => byId(id)).filter(Boolean);
+  return `<section class="panel stack">
+    <div><h2>Household</h2><span class="sub">Everyone eats the same meals; portions scale to each person's calories. Anything a person won't eat is left out of the plan.</span></div>
     <div>${members}</div>
     <div class="row"><button class="btn" data-act="addMember">Add person</button><span class="sub num">Total ${k(householdKcal())} kcal/day</span></div>
   </section>
@@ -748,25 +817,57 @@ function viewSetup() {
     <div><h2>Diet & style</h2><span class="sub">Restrictions are strict. Styles are preferences that steer the picks.</span></div>
     <span class="eyebrow">Must be</span><div class="chips">${toggles(RESTRICT, "restrict")}</div>
     <span class="eyebrow">Lean toward</span><div class="chips">${toggles(STYLES, "styles")}</div>
-    <label class="field">Avoid these ingredients (comma separated)<input type="text" id="avoid" data-bind="avoid" value="${esc(state.avoid)}" placeholder="e.g. mushrooms, shrimp, peanut"></label>
+    <label class="field">Nobody eats (comma separated)<input type="text" id="avoid" data-bind="avoid" value="${esc(state.avoid)}" placeholder="e.g. mushrooms, prawns, peanut"></label>
+    <label class="toggle" style="justify-self:start"><input type="checkbox" id="snacks" data-bind="snacks" ${state.snacks ? "checked" : ""}>Include a daily snack</label>
+    ${banned.length ? `<span class="eyebrow">Never suggested</span><div class="chips">${banned.map(r => `<button class="chip" data-act="ban" data-v="${esc(r.id)}" title="Allow again">${r.emoji} ${esc(r.name)} ✕</button>`).join("")}</div>` : ""}
   </section>
   <section class="panel stack">
-    <div><h2>Budget & stores</h2><span class="sub">The planner trims expensive days and compares your stores.</span></div>
-    <label class="field">Weekly food shop budget (£)<input type="number" id="budget" data-bind="budget" min="20" step="5" value="${state.budget}"></label>
+    <div><h2>Budget & shops</h2><span class="sub">The planner trims expensive days and compares your supermarkets.</span></div>
+    <div class="field">Weekly food shop budget (£)<div class="stepper" style="max-width:240px"><button type="button" class="btn sm" data-act="budgetStep" data-d="-10" aria-label="£10 less">−</button><input type="number" id="budget" data-bind="budget" min="20" step="5" value="${state.budget}" aria-label="Weekly budget in pounds"><button type="button" class="btn sm" data-act="budgetStep" data-d="10" aria-label="£10 more">+</button></div></div>
     <div class="row"><span class="eyebrow grow">Where you shop</span><span class="sub">Price index</span></div>
     <div class="stores">${stores}</div>
     <form class="row" data-form="addStore"><input type="text" id="ns-name" placeholder="Add another shop" style="flex:1 1 140px"><input type="number" id="ns-idx" step="0.01" min="0.5" max="2" value="1.00" style="width:84px" aria-label="Price index"><button class="btn sm" type="submit">Add</button></form>
-  </section>
+  </section>`;
+}
+function viewSetup() {
+  return `<div class="setup">${prefsHTML()}
   <section class="panel stack">
     <div><h2>Plan</h2><span class="sub">One card per day, like a countdown calendar.</span></div>
     <div class="row">
       <label class="field grow">Start date<input type="date" id="start" data-bind="start" value="${state.start}"></label>
       <label class="field" style="width:120px">Days<input type="number" id="days" data-bind="days" min="1" max="31" value="${state.days}"></label>
     </div>
-    <label class="toggle" style="justify-self:start"><input type="checkbox" id="snacks" data-bind="snacks" ${state.snacks ? "checked" : ""}>Include a daily snack</label>
     <div class="row"><button class="btn primary" data-act="generate">Build my plan</button><button class="btn ghost" data-act="reset">Start over</button></div>
   </section>
   </div>`;
+}
+function openTweak() {
+  document.getElementById("modalBody").innerHTML = `
+    <div class="mhead"><div class="grow"><h2>Tweak your plan</h2><span class="sub">Changes save as you go. Rebuilding swaps unlocked meals from today on; locked meals and past days stay.</span></div><button class="btn sm ghost" data-act="close">Close</button></div>
+    ${prefsHTML()}
+    <div class="sheetfoot"><button class="btn primary" data-act="apply">${state.dirty ? "Rebuild plan with these changes" : "Rebuild plan"}</button><button class="btn ghost" data-act="close">Done</button>${state.dirty ? '<span class="sub">You have changes not yet in the plan.</span>' : ""}</div>`;
+}
+
+/* ---------- meal picker ---------- */
+function openPicker() {
+  const { d, s } = picker, day = state.plan[d], cur = day && day.meals[s];
+  if (!day) return;
+  let list = rank(d, s, mulberry(d * 31 + s.length), state.plan).map(x => x.r);
+  if (picker.any) list = list.concat(allRecipes().filter(r => !fitsSlot(r, s) && allowed(r)));
+  if (cur && !list.some(r => r.id === cur.id) && byId(cur.id)) list.unshift(byId(cur.id));
+  if (picker.q) { const q = picker.q.toLowerCase(); list = list.filter(r => (r.name + " " + r.tags.map(t => TAGLABEL[t] || t).join(" ") + " " + r.ing.map(i => i[0]).join(" ")).toLowerCase().includes(q)); }
+  list.sort((a, b) => state.fav.includes(b.id) - state.fav.includes(a.id));
+  const rows = list.map(r => {
+    const fav = state.fav.includes(r.id), isCur = cur && cur.id === r.id;
+    return `<div class="pick ${isCur ? "cur" : ""}"><span class="e" aria-hidden="true">${r.emoji}</span>
+      <div class="grow"><b>${esc(r.name)}${isCur ? ' <span class="chip">Planned</span>' : ""}</b><span class="sub">${r.time} min · ${r.kcal} kcal · ${money(r.cost * bestIdx())}/serving</span><span class="meta">${tagChips(r, 3)}</span></div>
+      <div class="row" style="gap:4px"><button class="heart ${fav ? "on" : ""}" data-act="fav" data-v="${esc(r.id)}" aria-pressed="${fav}" aria-label="${fav ? "Remove from" : "Add to"} favourites">♥</button><button class="btn sm ghost" data-act="peek" data-v="${esc(r.id)}">View</button><button class="btn primary sm" data-act="pick" data-v="${esc(r.id)}">${isCur ? "Keep" : "Choose"}</button></div></div>`;
+  }).join("");
+  document.getElementById("modalBody").innerHTML = `
+    <div class="mhead"><div class="grow"><h2>Choose ${SLOT[s].toLowerCase()}</h2><span class="sub">Day ${d + 1} · ${fmtDate(day.date, { weekday: "long", day: "numeric", month: "long" })}. Favourites and best fits come first. Your choice is locked in.</span></div><button class="btn sm ghost" data-act="close">Close</button></div>
+    <div class="row"><input type="search" id="pk-q" placeholder="Search by name, ingredient or style" value="${esc(picker.q)}" style="flex:1 1 200px"><label class="toggle"><input type="checkbox" id="pk-any" ${picker.any ? "checked" : ""}>Show other meal types too</label></div>
+    ${sampler ? `<button class="btn on" data-act="conjureFor" style="justify-self:start">✦ Conjure something new with AI</button>` : ""}
+    <div>${rows || '<p class="empty">Nothing matches. Clear the search, show other meal types, or loosen a restriction under Tweak plan.</p>'}</div>`;
 }
 function calcForm(id) {
   return `<form class="calc" data-form="calc" data-v="${id}">
@@ -787,27 +888,29 @@ function calcKcal(sex, age, kg, cm, act, goal) {
 }
 
 /* ---------- recipe modal ---------- */
-function openRecipe(id, dayIdx, slot) {
+function openRecipe(id, dayIdx, slot, fromPicker) {
   const r = byId(id); if (!r) return;
   const day = dayIdx != null && state.plan[dayIdx];
   const info = day ? dayInfo(day) : null;
-  const sv = info ? info.servings : state.members.length;
+  const who = info && slot ? eaters(day.meals[slot]) : state.members;
+  const sv = info ? who.reduce((a, m) => a + (+m.kcal || 0) / info.kcal, 0) : state.members.length;
+  const fav = state.fav.includes(r.id), banned = state.ban.includes(r.id);
   const ing = r.ing.map(([n, q, u]) => `<li><span>${esc(n)}</span><span>${fmtQty(q * sv, u, false)}</span></li>`).join("");
-  const portions = info ? state.members.map(p => `<span class="person"><b>${esc(p.name)}</b> ${((+p.kcal || 0) / info.kcal).toFixed(1)} servings</span>`).join("") : "";
+  const portions = info ? who.map(p => `<span class="person"><b>${esc(p.name)}</b> ${((+p.kcal || 0) / info.kcal).toFixed(1)} servings</span>`).join("") : "";
   const dayOpts = state.plan.map((d, i) => `<option value="${i}" ${i === state.day ? "selected" : ""}>Day ${i + 1} · ${fmtDate(d.date)}</option>`).join("");
   const slotOpts = slots().filter(s => fitsSlot(r, s)).concat(slots().filter(s => !fitsSlot(r, s))).map(s => `<option value="${s}">${SLOT[s]}</option>`).join("");
   document.getElementById("modalBody").innerHTML = `
+    ${fromPicker ? `<button class="btn sm ghost" data-act="pickerBack" style="justify-self:start">← Back to choices</button>` : ""}
     <div class="mhead"><span class="e" aria-hidden="true">${r.emoji}</span><div class="grow"><h2>${esc(r.name)}</h2><span class="sub">${r.time} min · ${money(r.cost * bestIdx())} per serving at ${esc(chosenStores().sort((a, b) => a.idx - b.idx)[0].name)}</span><div class="meta row" style="gap:6px;margin-top:6px">${tagChips(r, 8)}</div></div><button class="btn sm ghost" data-act="close" aria-label="Close">Close</button></div>
     <div class="macros"><div><b>${r.kcal}</b>kcal</div><div><b>${r.protein} g</b>protein</div><div><b>${r.carbs} g</b>carbs</div><div><b>${r.fat} g</b>fat</div></div>
     <span class="sub">Per serving.</span>
+    <div class="row"><button class="btn sm ${fav ? "on" : ""}" data-act="fav" data-v="${esc(r.id)}" aria-pressed="${fav}">♥ ${fav ? "Favourite" : "Add to favourites"}</button><button class="btn sm ghost" data-act="ban" data-v="${esc(r.id)}">${banned ? "Allow again" : "Never suggest this"}</button></div>
     ${info ? `<div class="stack" style="gap:6px"><span class="eyebrow">For your household (${frac(Math.round(sv * 4) / 4)} servings)</span><div class="people">${portions}</div></div>` : ""}
     <div class="stack" style="gap:6px"><span class="eyebrow">Ingredients${info ? "" : ` for ${sv} servings`}</span><ul class="ing">${ing}</ul></div>
     <div class="stack" style="gap:6px"><span class="eyebrow">Method</span><ol class="steps">${r.steps.map(s => `<li>${esc(s)}</li>`).join("")}</ol></div>
     ${state.plan.length ? `<form class="row" data-form="addToPlan" data-v="${esc(r.id)}" style="border-top:1px solid var(--line);padding-top:12px"><select id="ap-day" style="flex:1 1 160px">${dayOpts}</select><select id="ap-slot" style="flex:0 1 130px">${slotOpts}</select><button class="btn primary sm" type="submit">Put on plan</button></form>` : ""}
-    ${!allowed(r) ? `<p class="sub" style="color:var(--blood)">This recipe doesn't fit your current restrictions or avoid list.</p>` : ""}
+    ${!allowed(r) ? `<p class="sub" style="color:var(--blood)">${banned ? "You've asked not to see this recipe in suggestions." : "This recipe doesn't fit your current restrictions or someone's won't-eat list."}</p>` : ""}
     ${r.id.startsWith("ai_") ? `<div class="row"><span class="chip ai">Made by Claude</span><button class="btn sm ghost" data-act="delCustom" data-v="${esc(r.id)}">Delete recipe</button></div>` : ""}`;
-  const dlg = document.getElementById("modal");
-  if (!dlg.open) dlg.showModal();
   if (dayIdx != null) { const d = document.getElementById("ap-day"); if (d) d.value = dayIdx; const s = document.getElementById("ap-slot"); if (s && slot) s.value = slot; }
 }
 
@@ -872,13 +975,25 @@ document.addEventListener("click", e => {
     case "fromToday": state.start = todayISO(); generate(false); render(); break;
     case "swap": swapMeal(state.day, s); break;
     case "lock": { const m = state.plan[state.day].meals[s]; if (m) { m.locked = !m.locked; save(); render(); } break; }
-    case "open": openRecipe(v, a.dataset.day != null ? +a.dataset.day : null, s); break;
+    case "open": { const dd = a.dataset.day != null ? +a.dataset.day : null; showModal(() => openRecipe(v, dd, s)); break; }
     case "close": document.getElementById("modal").close(); break;
+    case "tweak": if (state.tab === "setup") { window.scrollTo(0, 0); break; } openCalc = null; showModal(openTweak); break;
+    case "apply": generate(true); document.getElementById("modal").close(); render(); toast("Plan rebuilt"); break;
+    case "choose": picker = { q: "", any: false, d: state.day, s }; showModal(openPicker); break;
+    case "pick": setMeal(picker.d, picker.s, v); state.day = picker.d; document.getElementById("modal").close(); render(); toast(`${byId(v).name} chosen and locked`); break;
+    case "peek": showModal(() => openRecipe(v, picker.d, picker.s, true)); break;
+    case "pickerBack": showModal(openPicker); break;
+    case "eat": { const m = state.plan[state.day].meals[s]; if (!m) break; const out = new Set(m.out || []); out.has(v) ? out.delete(v) : out.add(v); m.out = [...out]; save(); render(); break; }
+    case "fav": { const i = state.fav.indexOf(v); i < 0 ? state.fav.push(v) : state.fav.splice(i, 1); save(); render(); toast(i < 0 ? "Added to favourites. It'll come up more often." : "Removed from favourites"); break; }
+    case "ban": { const i = state.ban.indexOf(v); if (i < 0) { state.ban.push(v); const n = replaceEverywhere(v); toast(n ? `Won't suggest it again. Replaced in ${n} meal${n === 1 ? "" : "s"}.` : "Won't suggest it again"); } else { state.ban.splice(i, 1); toast("Allowed again"); } save(); render(); break; }
+    case "kcalStep": { const m = state.members.find(x => x.id === v); if (m) { m.kcal = clamp((+m.kcal || 2000) + +a.dataset.d, 800, 5000); markEdited(); save(); render(); } break; }
+    case "budgetStep": state.budget = clamp(state.budget + +a.dataset.d, 20, 5000); markEdited(); save(); render(); break;
+    case "rfav": recipeFilter.fav = !recipeFilter.fav; render(); break;
     case "rmeal": recipeFilter.meal = v; render(); break;
-    case "conjureFor": state.tab = "recipes"; render(); window.scrollTo(0, 0); document.getElementById("cj-text")?.focus(); break;
-    case "delCustom": state.custom = state.custom.filter(r => r.id !== v); state.plan.forEach(d => slots().forEach(sl => { if (d.meals[sl] && d.meals[sl].id === v) d.meals[sl] = null; })); if (conjureResult && conjureResult.id === v) conjureResult = null; save(); document.getElementById("modal").close(); render(); break;
+    case "conjureFor": document.getElementById("modal").close(); state.tab = "recipes"; render(); window.scrollTo(0, 0); document.getElementById("cj-text")?.focus(); break;
+    case "delCustom": state.custom = state.custom.filter(r => r.id !== v); state.fav = state.fav.filter(x => x !== v); state.plan.forEach(d => slots().forEach(sl => { if (d.meals[sl] && d.meals[sl].id === v) d.meals[sl] = null; })); if (conjureResult && conjureResult.id === v) conjureResult = null; save(); document.getElementById("modal").close(); render(); break;
     case "calc": openCalc = openCalc === v ? null : v; render(); break;
-    case "addMember": state.members.push({ id: "m" + Date.now().toString(36), name: "Person " + (state.members.length + 1), kcal: 2000 }); markEdited(); save(); render(); break;
+    case "addMember": state.members.push({ id: "m" + Date.now().toString(36), name: "Person " + (state.members.length + 1), kcal: 2000, avoid: "" }); markEdited(); save(); render(); break;
     case "rmMember": state.members = state.members.filter(m => m.id !== v); markEdited(); save(); render(); break;
     case "copyList": copyList(); break;
     case "clearChecks": state.checked = {}; save(); render(); break;
@@ -890,7 +1005,8 @@ document.addEventListener("change", e => {
   const t = e.target;
   if (t.dataset.check) { state.checked[t.dataset.check] = t.checked; if (!t.checked) delete state.checked[t.dataset.check]; save(); render(); return; }
   if (t.id === "rmatch") { recipeFilter.match = t.checked; render(); return; }
-  if (t.dataset.member) { const m = state.members.find(x => x.id === t.dataset.member); if (!m) return; m[t.dataset.f] = t.dataset.f === "kcal" ? clamp(+t.value || 2000, 800, 5000) : t.value.trim() || "Someone"; markEdited(); save(); render(); return; }
+  if (t.id === "pk-any") { picker.any = t.checked; refreshModal(); return; }
+  if (t.dataset.member) { const m = state.members.find(x => x.id === t.dataset.member); if (!m) return; const f = t.dataset.f; m[f] = f === "kcal" ? clamp(+t.value || 2000, 800, 5000) : f === "name" ? t.value.trim() || "Someone" : t.value.trim(); markEdited(); save(); render(); return; }
   if (t.dataset.list) { const L = state[t.dataset.list]; const i = L.indexOf(t.value); if (t.checked && i < 0) L.push(t.value); if (!t.checked && i >= 0) L.splice(i, 1); markEdited(); save(); render(); return; }
   if (t.dataset.store) { const L = state.storesOn, i = L.indexOf(t.dataset.store); if (t.checked && i < 0) L.push(t.dataset.store); if (!t.checked && i >= 0) L.splice(i, 1); state.example = false; save(); render(); return; }
   if (t.dataset.storeidx) { const id = t.dataset.storeidx, val = clamp(+t.value || 1, .5, 2); const c = state.customStores.find(x => x.id === id); if (c) c.idx = val; else state.storeIdx[id] = val; state.example = false; save(); render(); return; }
@@ -905,7 +1021,9 @@ document.addEventListener("change", e => {
     markEdited(); save(); render();
   }
 });
-document.addEventListener("input", e => { if (e.target.id === "rq") { recipeFilter.q = e.target.value; const pos = e.target.selectionStart; render(); const q = document.getElementById("rq"); q.focus(); q.setSelectionRange(pos, pos); } });
+document.addEventListener("input", e => {
+  if (e.target.id === "pk-q") { picker.q = e.target.value; const pos = e.target.selectionStart; openPicker(); const q = document.getElementById("pk-q"); q.focus(); q.setSelectionRange(pos, pos); return; }
+  if (e.target.id === "rq") { recipeFilter.q = e.target.value; const pos = e.target.selectionStart; render(); const q = document.getElementById("rq"); q.focus(); q.setSelectionRange(pos, pos); } });
 document.addEventListener("submit", e => {
   const f = e.target.closest("form[data-form]"); if (!f) return;
   e.preventDefault();
@@ -925,12 +1043,13 @@ document.addEventListener("submit", e => {
   }
   if (type === "addToPlan") {
     const d = +document.getElementById("ap-day").value, s = document.getElementById("ap-slot").value;
-    state.plan[d].meals[s] = { id: f.dataset.v, locked: true };
-    state.day = d; save(); document.getElementById("modal").close(); render();
+    setMeal(d, s, f.dataset.v);
+    state.day = d; document.getElementById("modal").close(); render();
     toast(`Added to Day ${d + 1} ${SLOT[s].toLowerCase()} and locked`);
   }
 });
 document.getElementById("modal").addEventListener("click", e => { if (e.target.id === "modal") e.target.close(); });
+document.getElementById("modal").addEventListener("close", () => { modalView = null; });
 
 function copyList() {
   let items = groceryList(); if (state.hidePantry) items = items.filter(i => i.aisle !== "S");
@@ -939,6 +1058,7 @@ function copyList() {
   try { navigator.clipboard.writeText(text).then(done, () => fallbackCopy(text)); } catch (e) { fallbackCopy(text); }
 }
 function fallbackCopy(text) {
+  modalView = null;
   document.getElementById("modalBody").innerHTML = `<div class="mhead"><h2 class="grow">Shopping list</h2><button class="btn sm ghost" data-act="close">Close</button></div><span class="sub">Select all and copy.</span><textarea id="copybox" rows="16" readonly>${esc(text)}</textarea>`;
   const dlg = document.getElementById("modal"); if (!dlg.open) dlg.showModal();
   const box = document.getElementById("copybox"); box.focus(); box.select();

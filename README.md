@@ -5,7 +5,9 @@ A daily, Halloween-flavored meal planner in a single `index.html` (no build step
 - **Household:** one entry per person with their own calorie target (with a built-in calculator). Everyone eats the same meals; portions scale so each person hits their target.
 - **Budget & supermarkets (UK):** weekly budget in £, UK supermarkets (Aldi, Lidl, Asda, Tesco, Iceland, Sainsbury's, Morrisons, Ocado, Co-op, Waitrose, M&S) with editable price indexes, supermarket comparison, and day-by-day cost checks. The planner swaps pricey meals for cheaper ones when a day runs over.
 - **Preferences:** strict restrictions (vegan, vegetarian, pescatarian, gluten-free, dairy-free, keto), style preferences (healthier, Mediterranean, high protein, budget, quick, comfort, Mexican, Asian, spooky specials), and an avoid list.
-- **Daily view:** one "door" per day like a countdown calendar, with swap and lock for each meal.
+- **Daily view:** one "door" per day like a countdown calendar. Each meal has Choose (pick any recipe), Surprise me, Lock, and "who's eating" toggles.
+- **Tweak plan:** a button on every screen opens household, diet, budget and shop settings; rebuilding keeps locked meals and past days.
+- **Per-person tastes:** a won't-eat list for each person, favourites that come up more often, and "never suggest" for recipes.
 - **Groceries:** combined shopping list by aisle, in metric with British ingredient names and 400g tins, with checkboxes and copy to clipboard.
 - **Recipes:** 45 built-in recipes, plus AI-generated recipes when opened as a Claude artifact.
 
