@@ -1,5 +1,5 @@
 // Offline support for the home-screen app. The cache name changes with every build.
-const CACHE = "cauldron-1a94e53eac";
+const CACHE = "cauldron-b3ceee0044";
 const SHELL = ["./", "./index.html", "./manifest.webmanifest", "./icon-180.png", "./icon-192.png", "./icon-512.png"];
 
 self.addEventListener("install", e => {

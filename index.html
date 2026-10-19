@@ -236,6 +236,34 @@ dialog::backdrop { background: rgba(10, 5, 15, .6); backdrop-filter: blur(3px); 
 .ing li span:last-child { color: var(--muted); white-space: nowrap; font-variant-numeric: tabular-nums; }
 ol.steps { margin: 0; padding-left: 20px; display: grid; gap: 6px; font-size: 14px; }
 
+/* cook mode */
+dialog.cook { width: min(720px, 100vw); max-width: 100vw; height: min(100dvh, 880px); max-height: 100dvh; border-radius: 18px; }
+dialog.cook[open] { display: flex; flex-direction: column; }
+.ck-head { display: flex; align-items: center; gap: 10px; padding: calc(12px + env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-right, 0px)) 10px max(16px, env(safe-area-inset-left, 0px)); border-bottom: 1px solid var(--line); }
+.ck-head b { font-size: 16px; }
+.ck-prog { display: flex; gap: 4px; padding: 10px max(16px, env(safe-area-inset-left, 0px)) 0; }
+.ck-prog i { flex: 1; height: 5px; border-radius: 3px; background: var(--line); }
+.ck-prog i.on { background: var(--pumpkin); }
+.ck-main { flex: 1; overflow-y: auto; padding: 20px max(16px, env(safe-area-inset-right, 0px)) 20px max(16px, env(safe-area-inset-left, 0px)); display: grid; gap: 16px; align-content: start; }
+.ck-step { font-size: clamp(22px, 5.5vw, 30px); line-height: 1.35; font-weight: 600; text-wrap: pretty; }
+.ck-num { font-family: var(--display); font-size: 64px; line-height: .9; color: var(--pumpkin); }
+.ck-foot { display: flex; gap: 10px; padding: 12px max(16px, env(safe-area-inset-right, 0px)) calc(12px + env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px)); border-top: 1px solid var(--line); }
+.ck-foot .btn { flex: 1; justify-content: center; padding: 14px; font-size: 16px; }
+.ck-ing { display: grid; gap: 6px; }
+.ck-ing button { all: unset; box-sizing: border-box; display: flex; gap: 12px; align-items: center; padding: 10px 12px; border-radius: 12px; background: var(--surface-2); cursor: pointer; font-size: 16px; }
+.ck-ing button:focus-visible { outline: 2px solid var(--pumpkin); }
+.ck-ing .box { width: 22px; height: 22px; border-radius: 6px; border: 2px solid var(--muted); flex: none; display: grid; place-items: center; font-size: 14px; color: var(--pumpkin-ink); }
+.ck-ing .on .box { background: var(--moss); border-color: var(--moss); }
+.ck-ing .on .nm { text-decoration: line-through; color: var(--muted); }
+.ck-ing .q { margin-left: auto; color: var(--muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.timer { display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-radius: 12px; background: var(--violet-soft); border: 1px solid color-mix(in srgb, var(--violet) 40%, var(--line)); font-variant-numeric: tabular-nums; }
+.timer b { font-size: 22px; }
+.timer.done { background: var(--pumpkin-soft); border-color: var(--pumpkin); }
+.rate { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.rate .btn { flex-direction: column; padding: 14px 8px; justify-content: center; }
+.rate .btn span { font-size: 26px; }
+.daysel { display: flex; gap: 6px; flex-wrap: wrap; }
+.chip.tried { color: var(--moss); border-color: color-mix(in srgb, var(--moss) 40%, var(--line)); }
 #toast { position: fixed; left: 50%; bottom: calc(20px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%) translateY(20px); opacity: 0; background: var(--fg); color: var(--bg); padding: 10px 16px; border-radius: 10px; font-size: 14px; font-weight: 600; transition: .25s; pointer-events: none; z-index: 20; max-width: calc(100vw - 32px); }
 #toast.show { opacity: 1; transform: translateX(-50%); }
 
@@ -251,6 +279,7 @@ ol.steps { margin: 0; padding-left: 20px; display: grid; gap: 6px; font-size: 14
   .sb { grid-template-columns: 90px 1fr auto; }
   .macros { grid-template-columns: repeat(2, 1fr); }
   .brand span { display: none; }
+  dialog.cook { width: 100vw; height: 100dvh; margin: 0; border: 0; border-radius: 0; }
 }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
 </style>
@@ -275,6 +304,7 @@ ol.steps { margin: 0; padding-left: 20px; display: grid; gap: 6px; font-size: 14
 <main class="wrap" id="main"></main>
 <button class="btn primary fab" id="fab" data-act="tweak">Tweak plan</button>
 <dialog id="modal"><div class="mbody" id="modalBody"></div></dialog>
+<dialog id="cook" class="cook" aria-label="Step-by-step cooking"></dialog>
 <div id="toast" role="status" aria-live="polite"></div>
 
 <script>
@@ -362,7 +392,7 @@ function defaultState() {
   return {
     v: 1, example: true,
     members: [{ id: "m1", name: "Alex", kcal: 2200 }, { id: "m2", name: "Sam", kcal: 1800 }, { id: "m3", name: "Kiddo (8)", kcal: 1400 }],
-    restrict: [], styles: ["healthy", "mediterranean"], avoid: "", fav: [], ban: [],
+    restrict: [], styles: ["healthy", "mediterranean"], avoid: "", fav: [], ban: [], tried: {}, preferNew: false, shopDays: null,
     budget: 120, storesOn: ["aldi", "tesco", "sainsburys"], storeIdx: {}, customStores: [],
     start: todayISO(), days: 7, snacks: true, seed: 20261031,
     plan: [], checked: {}, hidePantry: true, custom: [], dirty: false,
@@ -373,8 +403,8 @@ let state = defaultState();
 try { const raw = localStorage.getItem(LS_KEY); if (raw) state = Object.assign(defaultState(), JSON.parse(raw)); } catch (e) {}
 
 let db = null, dbPath = null, writeChain = Promise.resolve(), cloudTimer = null, sampler = null;
-let syncMode = "local", openCalc = null, recipeFilter = { q: "", meal: "all", match: true, fav: false }, conjureResult = null, conjuring = false;
-let modalView = null, picker = { q: "", any: false, d: 0, s: "dinner" };
+let syncMode = "local", openCalc = null, recipeFilter = { q: "", meal: "all", match: true, fav: false, tried: "all" }, conjureResult = null, conjuring = false;
+let modalView = null, picker = { q: "", any: false, d: 0, s: "dinner" }, undoShuffle = null, cook = null;
 
 function save() {
   state.updatedAt = Date.now();
@@ -487,6 +517,7 @@ function rank(dayIdx, slot, rnd, plan) {
     s += rel > 1 ? -(rel - 1) * w : (1 - rel) * .2;
     if (r.id.startsWith("ai_")) s += .3;
     if (state.fav.includes(r.id)) s += 1.2;
+    if (state.preferNew && !state.tried[r.id]) s += .6;
     return { r, s };
   }).sort((a, b) => b.s - a.s);
 }
@@ -519,7 +550,6 @@ function generate(keepLocked = true) {
     }
   }
   state.plan = plan;
-  state.checked = {};
   state.dirty = false;
   const t = plan.findIndex(d => d.date === todayISO());
   state.day = t >= 0 ? t : 0;
@@ -535,6 +565,39 @@ function swapMeal(d, s) {
   if (!pick) return toast("No other recipes fit this slot. Loosen filters or conjure one.");
   day.meals[s] = { id: pick.r.id, locked: false, seen: [...seen].slice(-12), ...(cur && cur.out ? { out: cur.out } : {}) };
   save(); render();
+}
+/* new suggestions for every unlocked meal of one day; the previous day is kept for undo */
+function reshuffleDay(d) {
+  const day = state.plan[d];
+  undoShuffle = { d, date: day.date, meals: JSON.parse(JSON.stringify(day.meals)) };
+  const rnd = mulberry((Date.now() ^ (d * 7919)) & 0x7fffffff);
+  let n = 0;
+  for (const s of slots()) {
+    const m = day.meals[s];
+    if (m && m.locked) continue;
+    const avoid = new Set([m && m.id, ...((m && m.seen) || [])].filter(Boolean));
+    const list = rank(d, s, rnd, state.plan);
+    const pick = list.find(x => !avoid.has(x.r.id)) || list[0];
+    if (!pick) continue;
+    day.meals[s] = { id: pick.r.id, locked: false, seen: [...avoid].slice(-12), ...(m && m.out ? { out: m.out } : {}) };
+    n++;
+  }
+  save(); render();
+  toast(n ? `${n} new meal${n === 1 ? "" : "s"} for Day ${d + 1}` : "Every meal on this day is locked");
+}
+function markCooked(id, rating) {
+  const t = state.tried[id] || { n: 0 };
+  t.n++; t.last = todayISO();
+  if (rating) t.rating = rating;
+  state.tried[id] = t;
+  if (rating === "loved" && !state.fav.includes(id)) state.fav.push(id);
+  if (rating === "never" && !state.ban.includes(id)) { state.ban.push(id); replaceEverywhere(id); }
+  save();
+}
+function triedChip(r) {
+  const t = state.tried[r.id];
+  if (!t) return `<span class="chip">New to you</span>`;
+  return `<span class="chip tried">✓ Cooked ${t.n}×${t.rating === "loved" ? " · loved" : ""}</span>`;
 }
 function setMeal(d, s, id) {
   const cur = state.plan[d].meals[s];
@@ -578,9 +641,14 @@ function fmtQty(q, unit, buy) {
   const u = q > 1 && PLURAL[unit] ? PLURAL[unit] : unit;
   return n + " " + u;
 }
-function groceryList() {
+function shopDays() {
+  const sel = state.shopDays && state.plan.filter(d => state.shopDays.includes(d.date));
+  return sel && sel.length ? sel : state.plan;
+}
+function shopKey() { return state.shopDays && state.shopDays.length ? state.shopDays.slice().sort().join(",") : "all"; }
+function groceryList(days = shopDays()) {
   const map = new Map();
-  for (const day of state.plan) {
+  for (const day of days) {
     const info = dayInfo(day);
     info.slots.forEach((s, i) => { for (const [name, qty, unit, aisle] of info.recs[i].ing) {
       const key = name.toLowerCase() + "|" + unit;
@@ -671,7 +739,7 @@ function viewToday() {
     <div class="stack" style="gap:6px">
       <span class="eyebrow">Day ${state.day + 1} of ${state.plan.length}${day.date === t ? " · Today" : ""}</span>
       <h2>${fmtDate(day.date, { weekday: "long", month: "long", day: "numeric" })}</h2>
-      <span class="sub">Portions are sized so each person hits their own calorie target. Tap a name on a meal if they're not eating it.</span>
+      <span class="sub">Tap a meal to cook it step by step. Tap a name on a meal if they're not eating it.</span>
     </div>
     <div class="stats">
       <div class="stat"><span class="eyebrow">Household calories</span><b>${k(householdKcal())}</b><span class="sub">${state.members.length} ${state.members.length === 1 ? "person" : "people"}</span></div>
@@ -681,7 +749,7 @@ function viewToday() {
     <div class="people">${people}</div>
   </section>
   <section class="meals">${meals}</section>
-  <div class="row"><button class="btn" data-act="generate">Reroll unlocked meals</button><button class="btn" data-act="tweak">Change household or preferences</button>${sampler ? `<button class="btn on" data-act="conjureFor" data-v="${state.day}">✦ Conjure an AI recipe for this day</button>` : ""}</div>`;
+  <div class="row"><button class="btn primary" data-act="reshuffle">Reshuffle this day</button>${undoShuffle && undoShuffle.date === day.date ? `<button class="btn" data-act="undoShuffle">Undo reshuffle</button>` : ""}<button class="btn" data-act="shopOnly" data-v="${day.date}">Shopping list for this day</button><button class="btn ghost" data-act="generate">Reroll whole plan</button>${sampler ? `<button class="btn on" data-act="conjureFor" data-v="${state.day}">✦ Conjure an AI recipe for this day</button>` : ""}</div>`;
 }
 function mealCard(day, s, info) {
   const m = day.meals[s], r = m && byId(m.id);
@@ -693,14 +761,15 @@ function mealCard(day, s, info) {
   }).join("");
   return `<article class="meal ${m.locked ? "locked" : ""}">
     <div class="head"><span class="eyebrow">${SLOT[s]}</span><span class="sub num">${money(r.cost * info.per[s] * bestIdx())}</span></div>
-    <div class="row" style="flex-wrap:nowrap;align-items:flex-start"><span class="emoji" aria-hidden="true">${r.emoji}</span><div class="grow"><h3 data-act="open" data-v="${esc(r.id)}" data-day="${state.day}" data-s="${s}" tabindex="0" role="button">${esc(r.name)}</h3><span class="sub">${r.time} min · ${r.kcal} kcal / serving · ${r.protein} g protein</span></div></div>
-    <div class="meta">${tagChips(r)}</div>
+    <div class="row" style="flex-wrap:nowrap;align-items:flex-start"><span class="emoji" aria-hidden="true">${r.emoji}</span><div class="grow"><h3 data-act="cook" data-v="${esc(r.id)}" data-day="${state.day}" data-s="${s}" tabindex="0" role="button">${esc(r.name)}</h3><span class="sub">${r.time} min · ${r.kcal} kcal / serving · ${r.protein} g protein</span></div></div>
+    <div class="meta">${triedChip(r)}${tagChips(r, 3)}</div>
     <div class="portions"><span class="eyebrow" style="font-size:10px">Who's eating</span>${portions}</div>
     <div class="acts">
+      <button class="btn primary sm" data-act="cook" data-v="${esc(r.id)}" data-day="${state.day}" data-s="${s}">Cook</button>
       <button class="btn sm" data-act="choose" data-s="${s}">Choose</button>
       <button class="btn sm" data-act="swap" data-s="${s}" ${m.locked ? "disabled" : ""}>Surprise me</button>
       <button class="btn sm ${m.locked ? "on" : ""}" data-act="lock" data-s="${s}" aria-pressed="${!!m.locked}">${m.locked ? "Locked" : "Lock"}</button>
-      <button class="btn sm ghost" data-act="open" data-v="${esc(r.id)}" data-day="${state.day}" data-s="${s}">Recipe</button>
+      <button class="btn sm ghost" data-act="open" data-v="${esc(r.id)}" data-day="${state.day}" data-s="${s}">Details</button>
     </div>
   </article>`;
 }
@@ -709,7 +778,7 @@ function viewWeek() {
   if (!state.plan.length) return viewToday();
   const rows = state.plan.map((d, i) => {
     const info = dayInfo(d);
-    const cells = slots().map(s => { const r = d.meals[s] && byId(d.meals[s].id); return `<td>${r ? `<span class="m" data-act="open" data-v="${esc(r.id)}" data-day="${i}" data-s="${s}">${r.emoji} ${esc(r.name)}</span>${d.meals[s].locked ? ' <span class="chip ai">Locked</span>' : ""}` : '<span class="sub">None</span>'}</td>`; }).join("");
+    const cells = slots().map(s => { const r = d.meals[s] && byId(d.meals[s].id); return `<td>${r ? `<span class="m" data-act="cook" data-v="${esc(r.id)}" data-day="${i}" data-s="${s}" role="button" tabindex="0">${r.emoji} ${esc(r.name)}</span>${state.tried[r.id] ? ' <span class="chip tried">✓</span>' : ""}${d.meals[s].locked ? ' <span class="chip ai">Locked</span>' : ""}` : '<span class="sub">None</span>'}</td>`; }).join("");
     return `<tr class="${i === state.day ? "cur" : ""}"><td class="daycell"><span class="m" data-act="gotoDay" data-v="${i}">${fmtDate(d.date)}</span></td>${cells}<td class="num"><span class="dot ${costClass(info.cost, dayBudget())}"></span> ${money(info.cost)}</td></tr>`;
   }).join("");
   const total = planBaseCost() * bestIdx();
@@ -722,29 +791,40 @@ function viewWeek() {
 
 function viewGroceries() {
   if (!state.plan.length) return viewToday();
-  const base = planBaseCost(), budget = planBudget();
+  const days = shopDays(), all = !state.shopDays || !state.plan.some(d => state.shopDays.includes(d.date));
+  const base = days.reduce((a, d) => a + dayInfo(d).baseCost, 0), budget = state.budget * days.length / 7;
   const stores = chosenStores().map(s => ({ ...s, total: base * s.idx })).sort((a, b) => a.total - b.total);
   const max = Math.max(budget, ...stores.map(s => s.total)) * 1.05;
   const bars = stores.map((s, i) => `<div class="sb ${i === 0 ? "best" : ""}"><span>${esc(s.name)}${i === 0 ? ' <span class="chip" style="color:var(--moss)">Cheapest</span>' : ""}</span>
     <div class="track"><i style="width:${s.total / max * 100}%"></i><span class="budget" style="left:${budget / max * 100}%" title="Budget"></span></div><span class="amt">${money(s.total)}</span></div>`).join("");
-  let items = groceryList();
+  let items = groceryList(days);
   if (state.hidePantry) items = items.filter(i => i.aisle !== "S");
-  const done = items.filter(i => state.checked[i.key]).length;
+  const ck = shopKey(), isOn = i => !!state.checked[ck + "|" + i.key];
+  const done = items.filter(isOn).length;
   const groups = Object.keys(AISLES).map(a => {
     const list = items.filter(i => i.aisle === a).sort((x, y) => x.name.localeCompare(y.name));
     if (!list.length) return "";
-    return `<div class="aisle"><h3>${AISLES[a]}</h3>${list.map(i => `<label class="item ${state.checked[i.key] ? "done" : ""}"><input type="checkbox" data-check="${esc(i.key)}" ${state.checked[i.key] ? "checked" : ""}><span class="nm">${esc(i.name)}</span><span class="q">${fmtQty(i.qty, i.unit, true)}</span></label>`).join("")}</div>`;
+    return `<div class="aisle"><h3>${AISLES[a]}</h3>${list.map(i => `<label class="item ${isOn(i) ? "done" : ""}"><input type="checkbox" data-check="${esc(ck + "|" + i.key)}" ${isOn(i) ? "checked" : ""}><span class="nm">${esc(i.name)}</span><span class="q">${fmtQty(i.qty, i.unit, true)}</span></label>`).join("")}</div>`;
   }).join("");
+  const t = todayISO(), ti = state.plan.findIndex(d => d.date === t);
+  const sel = new Set(all ? [] : days.map(d => d.date));
+  const dayChips = state.plan.map((d, i) => `<button class="btn sm ${sel.has(d.date) ? "on" : ""}" data-act="shopDay" data-v="${d.date}" aria-pressed="${sel.has(d.date)}">${i + 1} · ${fmtDate(d.date, { weekday: "short", day: "numeric" })}</button>`).join("");
+  const label = all ? `the whole ${state.plan.length}-day plan` : days.length === 1 ? fmtDate(days[0].date, { weekday: "long", day: "numeric", month: "long" }) : `${days.length} days`;
   return banners() + `<section class="panel stack">
-    <div class="row"><div class="grow"><h2>Supermarket comparison</h2><span class="sub">Estimated total for ${state.plan.length} days. The yellow line is your ${money0(budget)} budget. Prices are rough UK estimates you can tune in Household.</span></div></div>
-    <div class="storebars">${bars}</div>
+    <div><h2>What are you shopping for?</h2><span class="sub">Pick one day, a few days, or the whole plan. Tap days to add or remove them.</span></div>
+    <div class="daysel"><button class="btn sm ${all ? "on" : ""}" data-act="shopAll" aria-pressed="${all}">Whole plan</button>${ti >= 0 ? `<button class="btn sm" data-act="shopOnly" data-v="${t}">Just today</button>` : ""}${ti >= 0 && ti + 1 < state.plan.length ? `<button class="btn sm" data-act="shopNext" data-v="3">Next 3 days</button>` : ""}</div>
+    <div class="daysel">${dayChips}</div>
   </section>
   <section class="panel stack">
-    <div class="row"><div class="grow"><h2>Shopping list</h2><span class="sub num">${done} of ${items.length} in the basket</span></div>
+    <div class="row"><div class="grow"><h2>Shopping list</h2><span class="sub num">For ${label} · ${done} of ${items.length} in the basket</span></div>
       <label class="toggle"><input type="checkbox" id="hidePantry" data-bind="hidePantry" ${state.hidePantry ? "checked" : ""}>Hide cupboard staples</label>
       <button class="btn sm" data-act="copyList">Copy list</button>
       <button class="btn sm ghost" data-act="clearChecks">Uncheck all</button></div>
     <div class="aisles">${groups || '<p class="empty">Nothing to buy.</p>'}</div>
+  </section>
+  <section class="panel stack">
+    <div class="row"><div class="grow"><h2>Supermarket comparison</h2><span class="sub">Estimated cost for ${label}. The yellow line is your budget for those days (${money0(budget)}). Prices are rough UK estimates you can tune under Tweak plan.</span></div></div>
+    <div class="storebars">${bars}</div>
   </section>`;
 }
 
@@ -769,9 +849,11 @@ function viewRecipes() {
   if (f.q) { const q = f.q.toLowerCase(); list = list.filter(r => (r.name + " " + r.tags.join(" ") + " " + r.ing.map(i => i[0]).join(" ")).toLowerCase().includes(q)); }
   if (f.match) list = list.filter(allowed);
   if (f.fav) list = list.filter(r => state.fav.includes(r.id));
-  list.sort((a, b) => (b.id.startsWith("ai_") - a.id.startsWith("ai_")) || state.styles.filter(s => b.tags.includes(s)).length - state.styles.filter(s => a.tags.includes(s)).length);
-  const mealBtns = ["all", ...Object.keys(SLOT)].map(m => `<button class="btn sm ${f.meal === m ? "on" : ""}" data-act="rmeal" data-v="${m}">${m === "all" ? "All" : SLOT[m]}</button>`).join("") + `<button class="btn sm ${f.fav ? "on" : ""}" data-act="rfav" aria-pressed="${f.fav}">♥ Favourites (${state.fav.length})</button>`;
-  const cards = list.map(r => `<button class="rcard ${allowed(r) ? "" : "dim"}" data-act="open" data-v="${esc(r.id)}"><span class="t"><span aria-hidden="true">${r.emoji}</span><span>${esc(r.name)}${state.fav.includes(r.id) ? ' <span style="color:var(--blood)" aria-label="favourite">♥</span>' : ""}</span></span><span class="sub">${r.time} min · ${r.kcal} kcal · ${money(r.cost)}/serving</span><span class="meta">${tagChips(r, 4)}</span></button>`).join("");
+  if (f.tried === "yes") list = list.filter(r => state.tried[r.id]).sort((a, b) => (state.tried[b.id].last || "").localeCompare(state.tried[a.id].last || ""));
+  if (f.tried === "no") list = list.filter(r => !state.tried[r.id]);
+  if (f.tried !== "yes") list.sort((a, b) => (b.id.startsWith("ai_") - a.id.startsWith("ai_")) || state.styles.filter(s => b.tags.includes(s)).length - state.styles.filter(s => a.tags.includes(s)).length);
+  const mealBtns = ["all", ...Object.keys(SLOT)].map(m => `<button class="btn sm ${f.meal === m ? "on" : ""}" data-act="rmeal" data-v="${m}">${m === "all" ? "All" : SLOT[m]}</button>`).join("") + `<button class="btn sm ${f.fav ? "on" : ""}" data-act="rfav" aria-pressed="${f.fav}">♥ Favourites (${state.fav.length})</button><button class="btn sm ${f.tried === "yes" ? "on" : ""}" data-act="rtried" data-v="yes">✓ Cooked before (${Object.keys(state.tried).length})</button><button class="btn sm ${f.tried === "no" ? "on" : ""}" data-act="rtried" data-v="no">Not tried yet</button>`;
+  const cards = list.map(r => `<button class="rcard ${allowed(r) ? "" : "dim"}" data-act="open" data-v="${esc(r.id)}"><span class="t"><span aria-hidden="true">${r.emoji}</span><span>${esc(r.name)}${state.fav.includes(r.id) ? ' <span style="color:var(--blood)" aria-label="favourite">♥</span>' : ""}</span></span><span class="sub">${r.time} min · ${r.kcal} kcal · ${money(r.cost)}/serving</span><span class="meta">${state.tried[r.id] ? triedChip(r) : ""}${tagChips(r, 3)}</span></button>`).join("");
   return conjurePanel() + `<section class="panel stack">
     <div class="row"><h2 class="grow">Recipe library</h2><span class="sub">${list.length} recipes</span></div>
     <div class="row"><input type="search" id="rq" placeholder="Search recipes or ingredients" value="${esc(f.q)}" style="flex:1 1 220px"><label class="toggle"><input type="checkbox" id="rmatch" ${f.match ? "checked" : ""}>Only ones that fit my household</label></div>
@@ -801,7 +883,7 @@ function prefsHTML() {
     <span class="eyebrow">Must be</span><div class="chips">${toggles(RESTRICT, "restrict")}</div>
     <span class="eyebrow">Lean toward</span><div class="chips">${toggles(STYLES, "styles")}</div>
     <label class="field">Nobody eats (comma separated)<input type="text" id="avoid" data-bind="avoid" value="${esc(state.avoid)}" placeholder="e.g. mushrooms, prawns, peanut"></label>
-    <label class="toggle" style="justify-self:start"><input type="checkbox" id="snacks" data-bind="snacks" ${state.snacks ? "checked" : ""}>Include a daily snack</label>
+    <div class="chips"><label class="toggle"><input type="checkbox" id="snacks" data-bind="snacks" ${state.snacks ? "checked" : ""}>Include a daily snack</label><label class="toggle"><input type="checkbox" id="preferNew" data-bind="preferNew" ${state.preferNew ? "checked" : ""}>Favour recipes we haven't tried</label></div>
     ${banned.length ? `<span class="eyebrow">Never suggested</span><div class="chips">${banned.map(r => `<button class="chip" data-act="ban" data-v="${esc(r.id)}" title="Allow again">${r.emoji} ${esc(r.name)} ✕</button>`).join("")}</div>` : ""}
   </section>
   <section class="panel stack">
@@ -887,7 +969,8 @@ function openRecipe(id, dayIdx, slot, fromPicker) {
     <div class="mhead"><span class="e" aria-hidden="true">${r.emoji}</span><div class="grow"><h2>${esc(r.name)}</h2><span class="sub">${r.time} min · ${money(r.cost * bestIdx())} per serving at ${esc(chosenStores().sort((a, b) => a.idx - b.idx)[0].name)}</span><div class="meta row" style="gap:6px;margin-top:6px">${tagChips(r, 8)}</div></div><button class="btn sm ghost" data-act="close" aria-label="Close">Close</button></div>
     <div class="macros"><div><b>${r.kcal}</b>kcal</div><div><b>${r.protein} g</b>protein</div><div><b>${r.carbs} g</b>carbs</div><div><b>${r.fat} g</b>fat</div></div>
     <span class="sub">Per serving.</span>
-    <div class="row"><button class="btn sm ${fav ? "on" : ""}" data-act="fav" data-v="${esc(r.id)}" aria-pressed="${fav}">♥ ${fav ? "Favourite" : "Add to favourites"}</button><button class="btn sm ghost" data-act="ban" data-v="${esc(r.id)}">${banned ? "Allow again" : "Never suggest this"}</button></div>
+    <div class="row"><button class="btn primary" data-act="cook" data-v="${esc(r.id)}" ${dayIdx != null ? `data-day="${dayIdx}"` : ""} ${slot ? `data-s="${slot}"` : ""}>Cook step by step</button>${triedChip(r)}</div>
+    <div class="row"><button class="btn sm ${fav ? "on" : ""}" data-act="fav" data-v="${esc(r.id)}" aria-pressed="${fav}">♥ ${fav ? "Favourite" : "Add to favourites"}</button><button class="btn sm ghost" data-act="cooked" data-v="${esc(r.id)}">We've made this</button><button class="btn sm ghost" data-act="ban" data-v="${esc(r.id)}">${banned ? "Allow again" : "Never suggest this"}</button></div>
     ${info ? `<div class="stack" style="gap:6px"><span class="eyebrow">For your household (${frac(Math.round(sv * 4) / 4)} servings)</span><div class="people">${portions}</div></div>` : ""}
     <div class="stack" style="gap:6px"><span class="eyebrow">Ingredients${info ? "" : ` for ${sv} servings`}</span><ul class="ing">${ing}</ul></div>
     <div class="stack" style="gap:6px"><span class="eyebrow">Method</span><ol class="steps">${r.steps.map(s => `<li>${esc(s)}</li>`).join("")}</ol></div>
@@ -895,6 +978,80 @@ function openRecipe(id, dayIdx, slot, fromPicker) {
     ${!allowed(r) ? `<p class="sub" style="color:var(--blood)">${banned ? "You've asked not to see this recipe in suggestions." : "This recipe doesn't fit your current restrictions or someone's won't-eat list."}</p>` : ""}
     ${r.id.startsWith("ai_") ? `<div class="row"><span class="chip ai">Made by Claude</span><button class="btn sm ghost" data-act="delCustom" data-v="${esc(r.id)}">Delete recipe</button></div>` : ""}`;
   if (dayIdx != null) { const d = document.getElementById("ap-day"); if (d) d.value = dayIdx; const s = document.getElementById("ap-slot"); if (s && slot) s.value = slot; }
+}
+
+/* ---------- step-by-step cook mode ---------- */
+let wakeLock = null, audioCtx = null;
+function openCook(id, d, s) {
+  document.getElementById("modal").close();
+  cook = { id, d, s, step: 0, got: new Set(), timer: cook && cook.timer };
+  renderCook();
+  const dlg = document.getElementById("cook");
+  if (!dlg.open) dlg.showModal();
+  try { navigator.wakeLock && navigator.wakeLock.request("screen").then(l => { wakeLock = l; }, () => {}); } catch (e) {}
+}
+function cookServings() {
+  const day = cook.d != null && state.plan[cook.d], info = day ? dayInfo(day) : null;
+  const who = info && cook.s ? eaters(day.meals[cook.s]) : state.members;
+  return { who, info, sv: info ? who.reduce((a, m) => a + (+m.kcal || 0) / info.kcal, 0) : state.members.length };
+}
+function stepMinutes(text) { const m = text.match(/(\d+)(?:\s*[–-]\s*(\d+))?\s*min/); return m ? +(m[2] || m[1]) : 0; }
+function renderCook() {
+  const r = byId(cook.id); if (!r) return;
+  const n = r.steps.length, last = n + 1, st = cook.step;
+  const { who, info, sv } = cookServings();
+  const prog = Array.from({ length: n + 2 }, (_, i) => `<i class="${i <= st ? "on" : ""}"></i>`).join("");
+  const ingList = r.ing.map(([nm, q, u], i) => `<button data-act="ckGot" data-v="${i}" class="${cook.got.has(i) ? "on" : ""}" aria-pressed="${cook.got.has(i)}"><span class="box">${cook.got.has(i) ? "✓" : ""}</span><span class="nm">${esc(nm)}</span><span class="q">${fmtQty(q * sv, u, false)}</span></button>`).join("");
+  let main;
+  if (st === 0) {
+    main = `<div><span class="eyebrow">Get ready · ${r.time} min</span><h2 style="font-size:26px;font-weight:800">${r.emoji} ${esc(r.name)}</h2>
+      <span class="sub">${info ? `${frac(Math.round(sv * 4) / 4)} servings for ${who.map(m => esc(m.name)).join(", ")}` : `${sv} servings`}. Tick things off as you get them out.</span></div>
+      ${info ? `<div class="people">${who.map(p => `<span class="person"><b>${esc(p.name)}</b> ${((+p.kcal || 0) / info.kcal).toFixed(1)} servings</span>`).join("")}</div>` : ""}
+      <div class="ck-ing">${ingList}</div>`;
+  } else if (st <= n) {
+    const text = r.steps[st - 1], mins = stepMinutes(text);
+    main = `<div class="ck-num">${st}</div><span class="eyebrow">Step ${st} of ${n}</span>
+      <p class="ck-step">${esc(text)}</p>
+      ${mins ? `<button class="btn" data-act="ckTimer" data-v="${mins}" style="justify-self:start">Start a ${mins}-minute timer</button>` : ""}
+      <details><summary class="sub" style="cursor:pointer">Ingredients</summary><div class="ck-ing" style="margin-top:8px">${ingList}</div></details>`;
+  } else {
+    const t = state.tried[r.id];
+    main = `<div class="ck-num">✓</div><h2 style="font-size:26px;font-weight:800">Done. Enjoy!</h2>
+      <span class="sub">${t ? `You've cooked this ${t.n} time${t.n === 1 ? "" : "s"} before.` : "First time making this one."} How was it? Your answer is saved to the cooked list.</span>
+      <div class="rate"><button class="btn" data-act="ckRate" data-v="loved"><span>😍</span>Loved it</button><button class="btn" data-act="ckRate" data-v="fine"><span>🙂</span>It was fine</button><button class="btn" data-act="ckRate" data-v="never"><span>🙅</span>Not again</button></div>
+      <button class="btn ghost" data-act="ckRate" data-v="" style="justify-self:start">Save without rating</button>`;
+  }
+  document.getElementById("cook").innerHTML = `
+    <div class="ck-head"><div class="grow"><b>${esc(r.name)}</b></div><button class="btn sm ghost" data-act="ckDetails">Details</button><button class="btn sm" data-act="ckClose">Close</button></div>
+    <div class="ck-prog" aria-hidden="true">${prog}</div>
+    ${cook.timer ? `<div style="padding:10px max(16px, env(safe-area-inset-left, 0px)) 0"><div class="timer" id="ck-timer"></div></div>` : ""}
+    <div class="ck-main" id="ck-main">${main}</div>
+    <div class="ck-foot"><button class="btn" data-act="ckPrev" ${st === 0 ? "disabled" : ""}>Back</button>${st < last ? `<button class="btn primary" data-act="ckNext">${st === 0 ? "Start cooking" : st === n ? "Finish" : "Next step"}</button>` : `<button class="btn primary" data-act="ckClose">Close</button>`}</div>`;
+  tickTimer();
+}
+function tickTimer() {
+  const el = document.getElementById("ck-timer"), t = cook && cook.timer;
+  if (!el || !t) return;
+  const left = Math.max(0, Math.round((t.end - Date.now()) / 1000));
+  el.className = "timer" + (left ? "" : " done");
+  el.innerHTML = left ? `<span>Timer</span><b>${Math.floor(left / 60)}:${String(left % 60).padStart(2, "0")}</b><span class="grow"></span><button class="btn sm ghost" data-act="ckTimerStop">Stop</button>` : `<b>Time's up</b><span class="grow"></span><button class="btn sm" data-act="ckTimerStop">Dismiss</button>`;
+}
+function beep() {
+  try {
+    if (!audioCtx) return;
+    [0, .35, .7].forEach(o => { const g = audioCtx.createGain(), osc = audioCtx.createOscillator(); osc.frequency.value = 880; g.gain.value = .15; osc.connect(g).connect(audioCtx.destination); osc.start(audioCtx.currentTime + o); osc.stop(audioCtx.currentTime + o + .2); });
+  } catch (e) {}
+}
+setInterval(() => {
+  const t = cook && cook.timer;
+  if (!t) return;
+  if (!t.rang && Date.now() >= t.end) { t.rang = true; beep(); toast("Time's up"); }
+  tickTimer();
+}, 1000);
+function closeCook() {
+  const dlg = document.getElementById("cook");
+  if (dlg.open) dlg.close();
+  if (wakeLock) { wakeLock.release().catch(() => {}); wakeLock = null; }
 }
 
 /* ---------- AI conjure ---------- */
@@ -960,6 +1117,23 @@ document.addEventListener("click", e => {
     case "lock": { const m = state.plan[state.day].meals[s]; if (m) { m.locked = !m.locked; save(); render(); } break; }
     case "open": { const dd = a.dataset.day != null ? +a.dataset.day : null; showModal(() => openRecipe(v, dd, s)); break; }
     case "close": document.getElementById("modal").close(); break;
+    case "cook": { const dd = a.dataset.day != null ? +a.dataset.day : null; openCook(v, dd, s || null); break; }
+    case "ckNext": { const r = byId(cook.id); cook.step = Math.min(r.steps.length + 1, cook.step + 1); renderCook(); document.getElementById("ck-main").scrollTop = 0; break; }
+    case "ckPrev": cook.step = Math.max(0, cook.step - 1); renderCook(); break;
+    case "ckGot": { const i = +v; cook.got.has(i) ? cook.got.delete(i) : cook.got.add(i); const top = document.getElementById("ck-main").scrollTop; renderCook(); document.getElementById("ck-main").scrollTop = top; break; }
+    case "ckTimer": { try { audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)(); audioCtx.resume(); } catch (e) {} cook.timer = { end: Date.now() + +v * 60000 }; renderCook(); break; }
+    case "ckTimerStop": cook.timer = null; renderCook(); break;
+    case "ckRate": { const r = byId(cook.id); markCooked(cook.id, v || null); cook.timer = null; closeCook(); render(); toast(v === "never" ? `${r.name} won't be suggested again` : v === "loved" ? `${r.name} added to favourites and your cooked list` : `${r.name} added to your cooked list`); break; }
+    case "ckClose": closeCook(); break;
+    case "ckDetails": { const c = cook; closeCook(); showModal(() => openRecipe(c.id, c.d, c.s)); break; }
+    case "cooked": markCooked(v); render(); toast("Added to your cooked list"); break;
+    case "reshuffle": reshuffleDay(state.day); break;
+    case "undoShuffle": { const d = state.plan.findIndex(x => x.date === undoShuffle.date); if (d >= 0) { state.plan[d].meals = undoShuffle.meals; save(); } undoShuffle = null; render(); toast("Reshuffle undone"); break; }
+    case "shopAll": state.shopDays = null; save(); render(); break;
+    case "shopOnly": state.shopDays = [v]; state.tab = "groceries"; save(); render(); window.scrollTo(0, 0); break;
+    case "shopNext": { const i = state.plan.findIndex(x => x.date === todayISO()); state.shopDays = state.plan.slice(i, i + +v).map(x => x.date); save(); render(); break; }
+    case "shopDay": { const cur = new Set(state.shopDays || []); cur.has(v) ? cur.delete(v) : cur.add(v); state.shopDays = cur.size ? [...cur] : null; save(); render(); break; }
+    case "rtried": recipeFilter.tried = recipeFilter.tried === v ? "all" : v; render(); break;
     case "tweak": if (state.tab === "setup") { window.scrollTo(0, 0); break; } openCalc = null; showModal(openTweak); break;
     case "apply": generate(true); document.getElementById("modal").close(); render(); toast("Plan rebuilt"); break;
     case "choose": picker = { q: "", any: false, d: state.day, s }; showModal(openPicker); break;
@@ -979,11 +1153,18 @@ document.addEventListener("click", e => {
     case "addMember": state.members.push({ id: "m" + Date.now().toString(36), name: "Person " + (state.members.length + 1), kcal: 2000, avoid: "" }); markEdited(); save(); render(); break;
     case "rmMember": state.members = state.members.filter(m => m.id !== v); markEdited(); save(); render(); break;
     case "copyList": copyList(); break;
-    case "clearChecks": state.checked = {}; save(); render(); break;
+    case "clearChecks": { const ck = shopKey() + "|"; Object.keys(state.checked).forEach(x => { if (x.startsWith(ck)) delete state.checked[x]; }); save(); render(); break; }
     case "reset": if (a.dataset.confirm) { const keepCustom = state.custom; state = defaultState(); state.custom = keepCustom; state.example = false; generate(false); render(); toast("Fresh start"); } else { a.dataset.confirm = "1"; a.textContent = "Tap again to erase settings"; } break;
   }
 });
-document.addEventListener("keydown", e => { if ((e.key === "Enter" || e.key === " ") && e.target.matches("h3[data-act]")) { e.preventDefault(); e.target.click(); } });
+document.addEventListener("keydown", e => {
+  if ((e.key === "Enter" || e.key === " ") && e.target.matches("h3[data-act], span[data-act][role=button]")) { e.preventDefault(); e.target.click(); }
+  if (document.getElementById("cook").open && !e.target.matches("input, textarea")) {
+    if (e.key === "ArrowRight") document.querySelector('#cook [data-act="ckNext"]')?.click();
+    if (e.key === "ArrowLeft") document.querySelector('#cook [data-act="ckPrev"]')?.click();
+  }
+});
+document.getElementById("cook").addEventListener("close", () => { if (wakeLock) { wakeLock.release().catch(() => {}); wakeLock = null; } });
 document.addEventListener("change", e => {
   const t = e.target;
   if (t.dataset.check) { state.checked[t.dataset.check] = t.checked; if (!t.checked) delete state.checked[t.dataset.check]; save(); render(); return; }
@@ -997,6 +1178,7 @@ document.addEventListener("change", e => {
     const key = t.dataset.bind;
     if (key === "hidePantry") { state.hidePantry = t.checked; save(); render(); return; }
     if (key === "snacks") state.snacks = t.checked;
+    else if (key === "preferNew") state.preferNew = t.checked;
     else if (key === "budget") state.budget = clamp(+t.value || 100, 20, 5000);
     else if (key === "days") state.days = clamp(Math.round(+t.value) || 7, 1, 31);
     else if (key === "start") { if (!t.value) return; state.start = t.value; }
@@ -1036,7 +1218,9 @@ document.getElementById("modal").addEventListener("close", () => { modalView = n
 
 function copyList() {
   let items = groceryList(); if (state.hidePantry) items = items.filter(i => i.aisle !== "S");
-  const text = Object.keys(AISLES).map(a => { const l = items.filter(i => i.aisle === a && !state.checked[i.key]); return l.length ? AISLES[a].toUpperCase() + "\n" + l.map(i => `- ${i.name}: ${fmtQty(i.qty, i.unit, true)}`).join("\n") : ""; }).filter(Boolean).join("\n\n");
+  const ck = shopKey(), days = shopDays();
+  const head = `Shopping list: ${!state.shopDays || !state.plan.some(d => state.shopDays.includes(d.date)) ? "whole plan" : days.map(d => fmtDate(d.date)).join(", ")}\n\n`;
+  const text = head + Object.keys(AISLES).map(a => { const l = items.filter(i => i.aisle === a && !state.checked[ck + "|" + i.key]); return l.length ? AISLES[a].toUpperCase() + "\n" + l.map(i => `- ${i.name}: ${fmtQty(i.qty, i.unit, true)}`).join("\n") : ""; }).filter(Boolean).join("\n\n");
   const done = () => toast("Shopping list copied");
   try { navigator.clipboard.writeText(text).then(done, () => fallbackCopy(text)); } catch (e) { fallbackCopy(text); }
 }

@@ -8,7 +8,10 @@ A daily, Halloween-flavored meal planner in a single `index.html` (no build step
 - **Daily view:** one "door" per day like a countdown calendar. Each meal has Choose (pick any recipe), Surprise me, Lock, and "who's eating" toggles.
 - **Tweak plan:** a button on every screen opens household, diet, budget and shop settings; rebuilding keeps locked meals and past days.
 - **Per-person tastes:** a won't-eat list for each person, favourites that come up more often, and "never suggest" for recipes.
-- **Groceries:** combined shopping list by aisle, in metric with British ingredient names and 400g tins, with checkboxes and copy to clipboard.
+- **Reshuffle a day:** new suggestions for every unlocked meal on one day, with undo.
+- **Cook mode:** tap a meal for a full-screen, step-by-step guide: ingredient checklist sized to who's eating, one step per screen, built-in timers, and the screen kept awake.
+- **Cooked list:** finishing a recipe asks how it was (loved / fine / not again) and keeps a record; filter recipes by cooked before or not tried yet, and optionally favour new ones.
+- **Groceries:** shopping list for the whole plan, just today, the next 3 days, or any days you pick, combined by aisle, in metric with British ingredient names and 400g tins, with checkboxes and copy to clipboard.
 - **Recipes:** 45 built-in recipes, plus AI-generated recipes when opened as a Claude artifact.
 
 Open `index.html` in a browser to run it. Data saves to the browser; as a Claude artifact it also syncs to your account.
